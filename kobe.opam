@@ -1,0 +1,29 @@
+url {
+  src: "https://github.com/ptal/kobe/archive/v0.1.0.tar.gz"
+}
+opam-version: "2.0"
+maintainer: "Pierre Talbot <pierre.talbot@univ-nantes.fr>"
+authors: [
+  "Pierre Talbot <pierre.talbot@univ-nantes.fr>"
+  "Tom Perroux <tom.perroux@etu.univ-nantes.fr>"
+]
+homepage: "https://github.com/ptal/kobe"
+bug-reports: "https://github.com/ptal/kobe/issues"
+dev-repo: "git+https://github.com/ptal/kobe"
+license: "Apache-2.0"
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+run-test: [
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+depends: [
+  "dune" {build}
+  "ocaml" {>= "4.07.1"}
+]
+
+synopsis: "Constraint benchmarking tools suite for various solvers including GeCode, Chuffed and AbSolute."
+description: "This package contains three executables to generate benchmark instance, to bench a particular set of data, and to view and analyze the results.
+This project was initiated in the context of the constraint solver AbSolute, but also support Chuffed and GeCode.
+Other repositories relevant to this project are: kobe-database, kobe-rcpsp, kobe-sat, Absolute."
