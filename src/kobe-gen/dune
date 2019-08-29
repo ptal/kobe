@@ -1,0 +1,7 @@
+(executable
+ (name kobe_gen)
+ (public_name kobegen)
+ (package kobe)
+ (modules :standard)
+ (library kobecore)
+)

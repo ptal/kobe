@@ -1,12 +1,20 @@
-# kobe
+# Constraint benchmarking tools suite (kobe)
 
 Constraint benchmarking tools suite for various solvers including GeCode, Chuffed and AbSolute.
 
-This project is divided into three executables: `kobegen`, `kobe` and `kobeview`.
+The goals of this benchmarking tools suite are:
 
-## Example
+1. Replicability of the research results.
+2. Report of the full results whereas in research papers it is often summarized.
+3. Automate benchmarking of different solvers on different problems.
+
+This work is on-going and replicability problems might still be present.
+In case of problems, please do not hesitate to contact us on the [issues tracker](https://github.com/ptal/kobe/issues) or by [email](mailto:pierre.talbot@univ-nantes.fr).
 
 ## Kobe tools suite
+
+This project is divided into three executables: `kobegen`, `kobe` and `kobeview`.
+The three executables rely on a common library named `kobecore` containing mostly the format of the benchmarking configuration files, and file manipulation utilities.
 
 ### Kobe benchmarks generator (`kobegen`)
 

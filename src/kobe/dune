@@ -1,0 +1,8 @@
+(executable
+ (name kobe)
+ (public_name kobe)
+ (package kobe)
+ (modules kobe)
+ (ocamlopt_flags (:standard -O3))
+ (libraries kobecore libabsolute rcpsp atdgen extlib mtime mtime.clock.os)
+)

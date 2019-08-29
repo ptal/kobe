@@ -1,0 +1,27 @@
+(library
+  (name kobecore)
+  (libraries atdgen extlib mtime mtime.clock.os)
+  (ocamlopt_flags (:standard -O3))
+  ;(ocamlopt_flags (:standard -p))
+  (modules :standard)
+)
+
+(rule
+ (targets bench_desc_j.ml bench_desc_j.mli)
+ (deps    bench_desc.atd)
+ (action  (run atdgen -j -j-std -j-strict-fields %{deps})))
+
+(rule
+ (targets bench_desc_t.ml bench_desc_t.mli)
+ (deps    bench_desc.atd)
+ (action  (run atdgen -t %{deps})))
+
+(rule
+ (targets bench_instance_j.ml bench_instance_j.mli)
+ (deps    bench_instance.atd)
+ (action  (run atdgen -j -j-std -j-strict-fields %{deps})))
+
+(rule
+ (targets bench_instance_t.ml bench_instance_t.mli)
+ (deps    bench_instance.atd)
+ (action  (run atdgen -t %{deps})))
