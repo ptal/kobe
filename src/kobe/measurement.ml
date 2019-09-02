@@ -1,5 +1,7 @@
-open Bench_instance_t
-open State
+open Bounds
+open Fixpoint
+open Kobecore
+open Kobecore.Bench_instance_t
 
 type measure = {
   problem_path: string;
@@ -32,7 +34,7 @@ let string_of_time_unit = function
 let csv_field_name = function
   | `ProblemPath -> "path"
   | `ProblemName -> "problem"
-  | `Time(u) -> "time"
+  | `Time(_) -> "time"
   | `Solutions -> "solutions"
   | `Fails -> "fails"
   | `Nodes -> "nodes"

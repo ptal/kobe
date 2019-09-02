@@ -1,3 +1,4 @@
+open Core
 open Scanf
 
 (* The information on the number and kind of resources available.

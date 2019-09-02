@@ -65,7 +65,7 @@ let get_config_desc () =
   else
     None
 
-let check_problem_file_format config problem_path =
+let check_problem_file_format problem_path =
   if Sys.is_directory problem_path then begin
     print_warning ("subdirectory " ^ problem_path ^ " ignored.");
     false end
@@ -132,7 +132,7 @@ let list_of_problems bench =
     Array.sort natural_comparison files;
     Array.to_list files |>
     List.map (fun x -> path ^ x) |>
-    List.filter (check_problem_file_format bench)
+    List.filter check_problem_file_format
   else
     eprintf_and_exit ("The problem set path `" ^ path ^ "` must be a directory. The structure of the input database must follow some conventions described in benchmark/README.md")
 

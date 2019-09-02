@@ -1,3 +1,4 @@
+open Core
 open Scanf
 open Rcpsp_data
 

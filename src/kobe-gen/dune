@@ -3,5 +3,5 @@
  (public_name kobegen)
  (package kobe)
  (modules :standard)
- (library kobecore)
+ (libraries kobecore)
 )

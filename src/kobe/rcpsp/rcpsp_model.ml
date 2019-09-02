@@ -1,6 +1,7 @@
 (* Constraint model of the RCPSP. *)
+open Bounds
+open Lang.Ast
 open Rcpsp_data
-open Csp
 
 (* I. Utility functions to create the model of the RCPSP. *)
 
@@ -69,7 +70,7 @@ let temporal_constraints project =
   let precedence_constraint (prec:precedence) (j,w) =
     let i = prec.job_index in
     let m_weight_i = constant_of (-w) in
-    (Binary (SUB, start_job i, start_job j), LEQ, m_weight_i) in
+    (Binary (start_job i, SUB, start_job j), LEQ, m_weight_i) in
   let all_successors (precedence:precedence) =
     List.map (precedence_constraint precedence)
       (List.map2 (fun x y -> (x,y)) precedence.job_successors precedence.weights) in
@@ -79,7 +80,7 @@ let temporal_constraints project =
 let overlap_reified_constraints project =
   for_all_distinct_pairs project.jobs (fun j1 j2 ->
     let c1 = (start_job' j1, LEQ, start_job' j2) in
-    let c2 = (Binary (SUB, start_job' j2, start_job' j1), LT, duration_of j1) in
+    let c2 = (Binary (start_job' j2, SUB, start_job' j1), LT, duration_of j1) in
     (job_start_when_name j1 j2, [c1; c2]))
 
 (* Tasks decomposition of cumulative:
@@ -90,16 +91,16 @@ let cumulative_constraint project capacity ri =
   List.map (fun j1 ->
     let resources_j2 = List.flatten (List.map (fun j2 ->
       if j1.job_index <> j2.job_index then
-        [Binary (MUL, job_start_when j2 j1, constant_of (List.nth j2.resources_usage ri))]
+        [Binary (job_start_when j2 j1, MUL, constant_of (List.nth j2.resources_usage ri))]
       else
         []
     ) jobs)
     in
-    let sum_resource_j2 = List.fold_left (fun sum mul -> Binary (ADD, sum, mul))
+    let sum_resource_j2 = List.fold_left (fun sum mul -> Binary (sum, ADD, mul))
       (constant_of 0) resources_j2 in
     let capacity = constant_of capacity in
     let resource_j1 = constant_of (List.nth j1.resources_usage ri) in
-    (capacity, GEQ, Binary (ADD, resource_j1, sum_resource_j2))
+    (capacity, GEQ, Binary (resource_j1, ADD, sum_resource_j2))
   ) jobs
 
 let all_cumulatives rcpsp project =

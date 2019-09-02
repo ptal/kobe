@@ -2,7 +2,9 @@
  (name kobe)
  (public_name kobe)
  (package kobe)
- (modules kobe)
+ (modules :standard)
  (ocamlopt_flags (:standard -O3))
- (libraries kobecore libabsolute rcpsp atdgen extlib mtime mtime.clock.os)
+ (libraries kobecore rcpsp
+    absolute absolute.core absolute.fixpoint absolute.domains absolute.box absolute.octagon absolute.box_octagon
+    atdgen extlib mtime mtime.clock.os)
 )

@@ -1,5 +1,6 @@
 (library
  (name rcpsp)
  (modules :standard)
- (libraries libabsolute)
+ (libraries kobecore
+    absolute absolute.core absolute.lang absolute.bounds)
 )

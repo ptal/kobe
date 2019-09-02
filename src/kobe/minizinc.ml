@@ -1,10 +1,13 @@
 open Printf
-open System
+open Bounds
+open Lang.Pretty_print
+open Fixpoint
+open Kobecore
+open Kobecore.System
+open Kobecore.Bench_instance_j
 open Rcpsp
 open Rcpsp_data
 open Rcpsp_model
-open Csp
-open Bench_instance_j
 
 let dzn_file = "tmp.dzn"
 let mzn_file = "tmp.mzn"
@@ -73,7 +76,7 @@ let mzn_solver_output_to_entries lines =
     with _ -> mzn_entries in
   clean_up_entries mzn_entries lines
 
-let choco_solver_output_to_entries lines =
+let choco_solver_output_to_entries _lines =
   eprintf_and_exit "Choco solver is not yet supported."
 
 let top_level_error lines =
