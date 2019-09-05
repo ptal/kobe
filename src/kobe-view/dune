@@ -1,6 +1,7 @@
 (executable
  (name kobe_view)
  (public_name kobeview)
+ (libraries kobecore)
  (package kobe)
  (modules :standard)
 )

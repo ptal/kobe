@@ -1,0 +1,27 @@
+{
+  "bench_exec": "./exec.sh",
+  "input_dir" : "data/",
+  "output_dir" : "database/",
+  "problem_sets" : [
+    { "path": "rcpsp/patterson.rcp/",
+      "timeout": 10 },
+    { "path": "rcpsp-max/sm_j10/",
+      "timeout": 10 }
+  ],
+  "solvers_kind": [
+    <AbSolute: {
+      "domains": [
+        { "name": "Octagon", "strategies": ["MSLF_simple", "Max_min_LB", "Min_max_LB"] },
+        { "name": "Box", "strategies": ["First_fail_LB", "MSLF_simple"] }
+      ]
+    }>],
+  "csv" : {
+    "fields" : [<ProblemName>, <Nodes>, <Solutions>, <Fails>, <Time : <Sec>>, <Optimum>]
+  },
+  "solvers_config": [
+    { "name": "absolute",
+      "version": "v0.4.0",
+      "exec": "",
+      "globals": "" }
+  ]
+}

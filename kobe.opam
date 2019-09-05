@@ -1,5 +1,5 @@
 url {
-  src: "https://github.com/ptal/kobe/zipball/v0.2.1.zip"
+  src: "https://github.com/ptal/kobe/zipball/v0.2.1"
 }
 opam-version: "2.0"
 maintainer: "Pierre Talbot <pierre.talbot@univ-nantes.fr>"
