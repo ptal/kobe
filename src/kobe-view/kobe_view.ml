@@ -1,3 +1,4 @@
+open Kobecore
 open Data_analyzer
 open Instance_inclusion
 open Cactus_plot
@@ -132,10 +133,17 @@ let to_json_database database =
   let json_2 = database_to_json_string computed 60. 30 in
   ("{\"analyses\":["^json_1^","^json_2^"]}")
 
+let get_database_dir () =
+  if Array.length Sys.argv < 2 then
+    System.eprintf_and_exit
+      "Database directory missing.\n\
+      usage: kobeview <database-dir>"
+  else Array.get Sys.argv 1
+
 let _ =
   Printexc.record_backtrace true;
   try
-    let (database : database) = read_database "benchmark/database-ccipl/" in
+    let (database : database) = read_database (get_database_dir ()) in
     let (database : database) = process_database database in
     (* print_inclusion_stats_of_database database *)
     (* print_database database *)
