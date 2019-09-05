@@ -74,7 +74,15 @@ let create_result_filename bench =
     | `MznKind(instance) -> (Filename.remove_extension (Filename.basename instance.model)) ^ "-" ^ instance.strategy.short
     | `DecomposedKind(instance) -> "box-" ^ instance.strategy.short
 
+let copy_optimum_files benchmark bench =
+  let optimum_path = System.concat_dir bench.problem_set_path "optimum" in
+  let source = System.concat_dir benchmark.input_dir optimum_path in
+  let target = System.concat_dir benchmark.output_dir bench.problem_set_path in
+  let _ = System.call_command ("cp -r " ^ source ^ " " ^ target) in
+  ()
+
 let register_bench benchmark bench =
+  let _ = copy_optimum_files benchmark bench in
   let solver_dir = create_solver_dir bench in
   let path = List.fold_left System.concat_dir benchmark.output_dir
     [bench.problem_set_path; solver_dir] in
