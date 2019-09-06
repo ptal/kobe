@@ -1,5 +1,5 @@
 url {
-  src: "https://github.com/ptal/kobe/zipball/v0.3.1"
+  src: "https://github.com/ptal/kobe/zipball/v0.4.0"
 }
 opam-version: "2.0"
 maintainer: "Pierre Talbot <pierre.talbot@univ-nantes.fr>"
@@ -21,10 +21,10 @@ run-test: [
 depends: [
   "dune" {build}
   "ocaml" {>= "4.07.1"}
-  "absolute"
+  "absolute" {= "0.5.0"}
 ]
 
-synopsis: "Constraint benchmarking tools suite for various solvers including GeCode, Chuffed and AbSolute."
+synopsis: "Constraint benchmarking tools suite for various solvers including GeCode, Chuffed and AbSolute"
 description: "This package contains three executables to generate benchmark instance, to bench a particular set of data, and to view and analyze the results.
 This project was initiated in the context of the constraint solver AbSolute, but also support Chuffed and GeCode.
 Other repositories relevant to this project are: kobe-database, kobe-rcpsp, kobe-sat, Absolute."
