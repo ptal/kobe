@@ -25,7 +25,7 @@ depends: [
   "atdgen" {build}
   "atd"
   "extlib"
-  "mtime" "mtime.clock.os"
+  "mtime"
 ]
 
 synopsis: "Constraint benchmarking tools suite for various solvers including GeCode, Chuffed and AbSolute"
