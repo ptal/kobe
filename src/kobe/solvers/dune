@@ -1,0 +1,6 @@
+(library
+ (name solvers)
+ (public_name kobe.solvers)
+ (modules :standard)
+ (libraries kobecore absolute.core)
+)
