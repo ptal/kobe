@@ -6,8 +6,14 @@ let absolute_ext = ".abs"
 let psplib_ext = ".sm"
 let patterson_ext = ".rcp"
 let pro_gen_ext = ".sch"
-let supported_extensions = [psplib_ext; patterson_ext; pro_gen_ext]
+let dimacs_ext = ".cnf"
+let rcpsp_supported_extensions = [psplib_ext; patterson_ext; pro_gen_ext]
+let sat_supported_extensions = [dimacs_ext]
+let supported_extensions = rcpsp_supported_extensions@sat_supported_extensions
 let usage = "Usage: absolute_bench <configuration file>\n"
+
+let output_file = "out.txt"
+let error_file = "err.txt"
 
 let print_warning msg =
   eprintf "[Warning] %s\n%!" msg
@@ -55,7 +61,7 @@ let file_to_string fname =
 let get_bench_desc () =
   if Array.length Sys.argv < 2 then
   begin
-    eprintf_and_exit "Benchmarks description file missing (see benchmark/data/example.json)."
+    eprintf_and_exit "Benchmarks description file missing (see the manual for the specification)."
   end
   else file_to_string (Array.get Sys.argv 1)
 
@@ -134,7 +140,7 @@ let list_of_problems bench =
     List.map (fun x -> path ^ x) |>
     List.filter check_problem_file_format
   else
-    eprintf_and_exit ("The problem set path `" ^ path ^ "` must be a directory. The structure of the input database must follow some conventions described in benchmark/README.md")
+    eprintf_and_exit ("The problem set path `" ^ path ^ "` must be a directory. The structure of the input database must follow some conventions described in the benchmarking manual.")
 
 let call_command command =
   (* Printf.printf "%s\n" command; *)
@@ -149,3 +155,20 @@ let time_of_ms = time_of 1000000
 let time_of_sec = time_of 1000000000
 
 let timeout_of_bench bench = time_of_sec bench.timeout
+
+let make_unique_file_name name =
+  let rec aux name i =
+    let base = Filename.remove_extension name in
+    let ext = Filename.extension name in
+    let path = "/tmp/" ^ base ^ (string_of_int i) ^ ext in
+    if Sys.file_exists path then
+      aux name (i+1)
+    else
+     path
+  in
+  aux name 0
+
+let create_file data name =
+  let oc = open_out name in
+  fprintf oc "%s\n" data;
+  close_out oc

@@ -9,6 +9,13 @@
       "timeout": 10 }
   ],
   "pipelines" : [
+    <MznToFzn: {
+      "models": ["model/minizinc/rcpsp-cumulative.mzn"],
+      "strategies": [
+        { "plain" : "int_search(s, smallest, indomain_min, complete) minimize objective",
+          "short": "min_lb" }
+      ]
+    }>,
     <MakeModel: {
       "decompositions": [
         {"name":"TimeRD", "description":"Time-resource decompostion of cumulative"}]
@@ -17,16 +24,34 @@
       "decompositions": [
         {"name":"TaskRD", "description":"Task-resource decompostion of cumulative"}]
     }>,
+    <ModelToFzn: {
+      "strategies": [
+        { "plain" : "smallest, indomain_min, complete",
+          "short": "min_lb" }
+      ]
+    }>,
     <ModelToAbsolute: {
       "domains": [
         { "name": "Octagon", "strategies": ["MSLF_simple", "Max_min_LB", "Min_max_LB"] },
         { "name": "Box", "strategies": ["First_fail_LB"] }
       ]
-    }>],
+    }>,
+    <Solve:
+      [[{"name": "gecode", "options": []},
+       {"name": "chuffed", "options": []}]]
+    >],
   "csv" : {
     "fields" : [<ProblemName>, <Nodes>, <Solutions>, <Fails>, <Time : <Sec>>, <Optimum>]
   },
   "solvers_config": [
+    { "name": "gecode",
+      "version": "6.1.0",
+      "exec": "fzn-gecode",
+      "globals": "/usr/share/minizinc/gecode" },
+    { "name": "chuffed",
+      "version": "0.10.3@develop",
+      "exec": "chuffed/build/fzn-chuffed",
+      "globals": "chuffed/chuffed/flatzinc/mznlib" },
     { "name": "absolute",
       "version": "v0.4.0",
       "exec": "",

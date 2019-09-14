@@ -1,28 +1,40 @@
 type csv_desc <ocaml from="Bench_desc"> = abstract
 type solver_config <ocaml from="Bench_desc"> = abstract
-type mzn_strategy <ocaml from="Bench_desc"> = abstract
+type search_strategy <ocaml from="Bench_desc"> = abstract
+type decomposition <ocaml from="Bench_desc"> = abstract
+type solver_option <ocaml from="Bench_desc"> = abstract
 
-type mzn_instance = {
+type fzn_solver = {
   solver: solver_config;
+  option: solver_option option;
+  decompositions: decomposition list;
+  strategy: search_strategy;
+}
+
+type mzn_solver = {
+  solver: solver_config;
+  option: solver_option option;
   model: string;
-  strategy: mzn_strategy;
+  strategy: search_strategy;
 }
 
-type decomposed_instance = {
-  solver: solver_config;
-  strategy: mzn_strategy;
-}
-
-type absolute_instance = {
+type absolute_solver = {
   version: string;
+  decompositions: decomposition list;
   domain: string;
   strategy: string;
 }
 
+type standalone_solver = {
+  solver: solver_config;
+  option: solver_option option;
+}
+
 type solver_instance = [
-  | AbSoluteKind of absolute_instance
-  | MznKind of mzn_instance
-  | DecomposedKind of decomposed_instance
+  | FznSolver of fzn_solver
+  | MznSolver of mzn_solver
+  | AbsoluteSolver of absolute_solver
+  | StandaloneSolver of standalone_solver
 ]
 
 type bench_instance = {

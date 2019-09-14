@@ -1,5 +1,6 @@
 (library
   (name kobecore)
+  (public_name kobe.kobecore)
   (libraries atdgen extlib mtime mtime.clock.os)
   (ocamlopt_flags (:standard -O3))
   ;(ocamlopt_flags (:standard -p))

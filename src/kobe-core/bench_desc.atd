@@ -4,50 +4,30 @@ type time_unit = [
   | Sec
 ]
 
+type memory_unit = [
+    Byte
+  | KB
+  | MB
+  | GB
+]
+
 type csv_field = [
     ProblemPath
   | ProblemName
   | Time of time_unit
+  | Memory of memory_unit
   | Solutions
   | Fails
   | Nodes
   | Optimum
+  | Satisfiability
+  | Restarts
+  | DepthMax
 ]
 
 type csv_desc = {
   fields: csv_field list
 }
-
-type mzn_strategy = {
-  mzn_annot: string;
-  short: string;
-}
-
-type mzn_kind = {
-  solvers: string list;
-  models: string list;
-  strategies: mzn_strategy list;
-}
-
-type decomposed_mzn_kind = {
-  solvers: string list;
-  strategies: mzn_strategy list;
-}
-
-type domain = {
-  name: string;
-  strategies: string list;
-}
-
-type absolute_kind = {
-  domains: domain list
-}
-
-type solver_kind = [
-  | AbSolute of absolute_kind
-  | MiniZinc of mzn_kind
-  | DecomposedMzn of decomposed_mzn_kind
-]
 
 type problem_set = {
   path: string;
@@ -63,12 +43,62 @@ type solver_config = {
 
 type solvers_config = solver_config list
 
+type decomposition = {
+  name: string;
+  description: string;
+}
+
+type make_model = {
+  decompositions: decomposition list;
+}
+
+type search_strategy = {
+  plain: string;
+  short: string;
+}
+
+type model_to_fzn = {
+  strategies: search_strategy list;
+}
+
+type domain = {
+  name: string;
+  strategies: string list;
+}
+
+type model_to_absolute = {
+  domains: domain list;
+}
+
+type mzn_to_fzn = {
+  models: string list;
+  strategies: search_strategy list;
+}
+
+type solver_option = {
+  name: string;
+  option: string;
+}
+
+type solver = {
+  name: string;
+  options: solver_option list;
+}
+
+type pipeline = [
+  | MakeModel of make_model
+  | ModelToFzn of model_to_fzn
+  | ModelToAbsolute of model_to_absolute
+  | MznToFzn of mzn_to_fzn
+  | Solve of (solver list)
+]
+
 type benchmark = {
   bench_exec: string;
   input_dir: string;
   output_dir: string;
   problem_sets: problem_set list;
-  solvers_kind: solver_kind list;
+  pipelines: pipeline list;
   csv: csv_desc;
   solvers_config: solvers_config;
 }
