@@ -1,0 +1,5 @@
+(library
+ (name parsers)
+ (public_name kobe.parsers)
+ (modules :standard)
+)
