@@ -1,0 +1,8 @@
+(library
+ (name models)
+ (public_name kobe.models)
+ (modules :standard)
+ (libraries kobecore
+    kobe.parsers.scheduling
+    absolute.core absolute.lang absolute.lang.decompositions absolute.bounds)
+)
