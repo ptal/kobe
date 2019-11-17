@@ -1,0 +1,8 @@
+(library
+ (name generators)
+ (public_name kobe.generators)
+ (modules :standard)
+ (libraries kobecore
+    kobe.models
+    absolute.core absolute.lang absolute.bounds)
+)
