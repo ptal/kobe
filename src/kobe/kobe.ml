@@ -1,14 +1,6 @@
-open Core
-open Fixpoint
-open Domains
-open Box
-open Octagon
-open Box_octagon
 open Kobecore.Bench_instance_j
-open Rcpsp
-open Rcpsp_model
 open Kobecore.System
-
+(*
 module type RCPSP_sig =
 sig
   include Abstract_domain.Abstract_domain
@@ -168,12 +160,13 @@ let bench_absolute bench solver =
       let (module B: Bencher_sig) = (module Bencher(M)) in
       B.start_benchmarking bench
   | d -> eprintf_and_exit ("The AbSolute domain `" ^ d ^ "` is unknown. Please look into `Absolute_bench.bench_absolute` for a list of the supported domains.")
-
+ *)
 let run_bench bench =
   match bench.solver_instance with
-  | `AbSoluteKind(instance) -> bench_absolute bench instance
-  | `MznKind(instance) -> Minizinc.bench_minizinc bench instance
-  | `DecomposedKind(instance) -> Minizinc.bench_decomposed_mzn bench instance
+  | `AbsoluteSolver(_) -> raise Not_found (* bench_absolute bench solver *)
+  | `MznSolver(solver) -> Benchers.Mzn.bench_mzn bench solver
+  | `FznSolver(solver) -> Benchers.Fzn.bench_fzn bench solver
+  | `StandaloneSolver(solver) -> Benchers.Standalone.bench_standalone bench solver
 
 let bench_from_json json_data =
   try

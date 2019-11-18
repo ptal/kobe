@@ -1,0 +1,8 @@
+(library
+ (name benchers)
+ (public_name kobe.benchers)
+ (modules :standard)
+ (libraries kobecore
+    kobe.solvers kobe.generators kobe.parsers.scheduling
+    absolute.core absolute.fixpoint absolute.lang absolute.bounds)
+)

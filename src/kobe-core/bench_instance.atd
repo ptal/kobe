@@ -4,18 +4,21 @@ type search_strategy <ocaml from="Bench_desc"> = abstract
 type decomposition <ocaml from="Bench_desc"> = abstract
 type solver_option <ocaml from="Bench_desc"> = abstract
 
-type fzn_solver = {
+type fzn_kind_solver = {
   solver: solver_config;
+  mzn2fzn: solver_config;
   option: solver_option option;
-  decompositions: decomposition list;
   strategy: search_strategy;
 }
 
+type fzn_solver = {
+  fzn: fzn_kind_solver;
+  decompositions: decomposition list;
+}
+
 type mzn_solver = {
-  solver: solver_config;
-  option: solver_option option;
+  fzn: fzn_kind_solver;
   model: string;
-  strategy: search_strategy;
 }
 
 type absolute_solver = {

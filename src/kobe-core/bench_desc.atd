@@ -5,7 +5,7 @@ type time_unit = [
 ]
 
 type memory_unit = [
-    Byte
+    Bytes
   | KB
   | MB
   | GB

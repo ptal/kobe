@@ -4,7 +4,8 @@
  (package kobe)
  (modules :standard)
  (ocamlopt_flags (:standard -O3))
- (libraries kobecore rcpsp
-    absolute absolute.core absolute.fixpoint absolute.domains absolute.box absolute.octagon absolute.box_octagon
+ (libraries kobecore
+    kobe.benchers
+    absolute absolute.core absolute.domains absolute.box
     atdgen extlib mtime mtime.clock.os)
 )

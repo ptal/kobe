@@ -2,7 +2,6 @@ open Printf
 open Bench_instance_t
 
 let json_ext = ".json"
-let absolute_ext = ".abs"
 let psplib_ext = ".sm"
 let patterson_ext = ".rcp"
 let pro_gen_ext = ".sch"
@@ -71,9 +70,23 @@ let get_config_desc () =
   else
     None
 
+let contain_string s sub extract =
+  let s = String.trim s in
+  let sub = String.trim sub in
+  let sub_len = String.length sub in
+  if String.length s >= sub_len then
+    (extract s sub_len) = sub
+  else
+    false
+
+let end_with s tail =
+  contain_string s tail (fun s tail_len ->
+    String.sub s ((String.length s) - tail_len) tail_len)
+
 let check_problem_file_format problem_path =
   if Sys.is_directory problem_path then begin
-    print_warning ("subdirectory " ^ problem_path ^ " ignored.");
+    if end_with problem_path "solution" || end_with problem_path "optimum" then ()
+    else print_warning ("subdirectory " ^ problem_path ^ " ignored.");
     false end
   else
     let ext = String.lowercase_ascii (Filename.extension problem_path) in
@@ -110,7 +123,7 @@ let natural_comparison x y =
       let a = get x i in
       let b = get y j in
       match Pervasives.compare a b with
-      | _ when is_digit a -> compare_number_sequence i j
+      | _ when is_digit a && is_digit b -> compare_number_sequence i j
       | 0 -> aux (i+1) (j+1)
       | r -> r
   and compare_number_sequence i j =
@@ -149,12 +162,13 @@ let call_command command =
   status
 
 let time_of coeff time =
-  Mtime.Span.of_uint64_ns (Int64.mul (Int64.of_int coeff) (Int64.of_int time))
+  Mtime.Span.of_uint64_ns (Int64.mul (Int64.of_int coeff) time)
 
+let time_of_ns = time_of 1
 let time_of_ms = time_of 1000000
 let time_of_sec = time_of 1000000000
 
-let timeout_of_bench bench = time_of_sec bench.timeout
+let timeout_of_bench bench = time_of_sec (Int64.of_int bench.timeout)
 
 let make_unique_file_name name =
   let rec aux name i =
@@ -172,3 +186,8 @@ let create_file data name =
   let oc = open_out name in
   fprintf oc "%s\n" data;
   close_out oc
+
+let make_file data file =
+  let filename = make_unique_file_name file in
+  create_file data filename;
+  filename
