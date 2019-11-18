@@ -40,7 +40,9 @@ val decompositions_name: decomposition list -> string
 val create_solver_dir: bench_instance -> string
 val create_result_filename: bench_instance -> string
 
-val copy_optimum_files: benchmark -> bench_instance -> unit
+val copy_dir: benchmark -> bench_instance -> string -> unit
+val copy_optimum_dir: benchmark -> bench_instance -> unit
+val copy_solution_dir: benchmark -> bench_instance -> unit
 
 val register_bench: benchmark -> bench_instance -> unit
 

@@ -3,11 +3,22 @@ open Bench_desc_j
 open Bench_instance_j
 open System
 
+let find_solver' benchmark name =
+  List.find (fun (c: solver_config) -> String.equal c.name name) benchmark.solvers_config
+
 let find_solver benchmark name =
   try
-    List.find (fun (c: solver_config) -> String.equal c.name name) benchmark.solvers_config
+    find_solver' benchmark name
   with Not_found ->
     System.eprintf_and_exit ("Solver named `" ^ name ^ "` is not described in the configuration file. Please see `benchmark/data/benchmarks.json` for example of solver configuration.")
+
+let find_mzn2fzn benchmark =
+  try
+    find_solver' benchmark "mzn2fzn"
+  with Not_found ->
+    System.eprintf_and_exit ("We could not find `mzn2fzn` in the `solvers_config` list.\n\
+      This converter is required when MiniZinc-based solvers are used.\n\
+      It should either be a `mzn2fzn` or `minizinc` executable depending on your distribution.")
 
 let is_fzn_solver = function
   | "gecode" | "chuffed" | "choco" -> true
@@ -57,14 +68,17 @@ let model_to_absolute_sink benchmark (model: make_model) abs =
 let fzn_solver_sink benchmark (model: make_model) (fzn: model_to_fzn) (solvers: solver list) =
   map_fzn_solvers (fun (solver: solver) ->
     let solver_config = find_solver benchmark solver.name in
+    let mzn2fzn = find_mzn2fzn benchmark in
     List.flatten (
     List.map (fun strategy ->
     map_solver_option (fun option ->
       `FznSolver {
-        solver=solver_config;
-        option;
-        decompositions=model.decompositions;
-        strategy }
+        fzn={
+          solver=solver_config;
+          mzn2fzn;
+          option;
+          strategy };
+        decompositions=model.decompositions; }
     ) solver.options
     ) fzn.strategies)
   ) solvers
@@ -90,15 +104,18 @@ let make_model_state benchmark (model: make_model) (pipelines: pipeline list) =
 let mzn2fzn_solve_sink benchmark (mzn: mzn_to_fzn) solvers =
   map_fzn_solvers (fun solver ->
     let solver_config = find_solver benchmark solver.name in
+    let mzn2fzn = find_mzn2fzn benchmark in
     List.flatten (List.flatten (
     List.map (fun model ->
     List.map (fun strategy ->
     map_solver_option (fun option ->
       `MznSolver {
-        solver=solver_config;
-        option;
-        model;
-        strategy }
+        fzn={
+          solver=solver_config;
+          mzn2fzn;
+          option;
+          strategy };
+        model }
     ) solver.options
     ) mzn.strategies
     ) mzn.models))
@@ -180,33 +197,37 @@ let decompositions_name decompositions =
 let create_solver_dir bench =
   match bench.solver_instance with
   | `AbsoluteSolver abs -> "absolute-" ^ abs.version
-  | `FznSolver fzn -> solver_uid fzn.solver
-  | `MznSolver mzn -> solver_uid mzn.solver
+  | `FznSolver fzn -> solver_uid fzn.fzn.solver
+  | `MznSolver mzn -> solver_uid mzn.fzn.solver
   | `StandaloneSolver standalone -> solver_uid standalone.solver
 
 let create_result_filename bench =
   match bench.solver_instance with
     | `AbsoluteSolver abs ->
         abs.domain ^ "-" ^ abs.strategy ^ (decompositions_name abs.decompositions)
-    | `FznSolver fzn -> "box-" ^ fzn.strategy.short ^ (decompositions_name fzn.decompositions) ^ (option_name fzn.option)
+    | `FznSolver fzn -> "box-" ^ fzn.fzn.strategy.short ^ (decompositions_name fzn.decompositions) ^ (option_name fzn.fzn.option)
     | `MznSolver mzn ->
-        (Filename.remove_extension (Filename.basename mzn.model)) ^ "-" ^ mzn.strategy.short
-        ^ (option_name mzn.option)
+        (Filename.remove_extension (Filename.basename mzn.model)) ^ "-" ^ mzn.fzn.strategy.short
+        ^ (option_name mzn.fzn.option)
     | `StandaloneSolver standalone -> "standalone" ^ (option_name standalone.option)
 
-let copy_optimum_files benchmark bench =
-  let optimum_path = System.concat_dir bench.problem_set_path "optimum" in
-  let source = System.concat_dir benchmark.input_dir optimum_path in
+let copy_dir benchmark bench dir =
+  let path = System.concat_dir bench.problem_set_path dir in
+  let source = System.concat_dir benchmark.input_dir path in
   let target = System.concat_dir benchmark.output_dir bench.problem_set_path in
-  let _ = System.call_command ("cp -r " ^ source ^ " " ^ target) in
+  let _ = System.call_command ("cp -r " ^ source ^ " " ^ target ^ " 2> /dev/null") in
   ()
+
+let copy_optimum_dir benchmark bench = copy_dir benchmark bench "optimum"
+let copy_solution_dir benchmark bench = copy_dir benchmark bench "solution"
 
 let register_bench benchmark bench =
   let solver_dir = create_solver_dir bench in
   let path = List.fold_left System.concat_dir benchmark.output_dir
     [bench.problem_set_path; solver_dir] in
   let _ = System.call_command ("mkdir -p " ^ path) in
-  let _ = copy_optimum_files benchmark bench in
+  let _ = copy_optimum_dir benchmark bench in
+  let _ = copy_solution_dir benchmark bench in
   let result_filename = create_result_filename bench in
   let bench_instance_file = System.concat_dir path (result_filename ^ ".json") in
   let bench = finalize_bench benchmark bench in
