@@ -11,11 +11,11 @@
   "pipelines" : [
     <MakeModel: {
       "decompositions": [
-        {"name":"TimeRD", "description":"Time-resource decompostion of cumulative"}]
+        {"name":"TimeRD", "description":"Time-resource decomposition of cumulative"}]
     }>,
     <MakeModel: {
       "decompositions": [
-        {"name":"TaskRD", "description":"Task-resource decompostion of cumulative"}]
+        {"name":"TaskRD", "description":"Task-resource decomposition of cumulative"}]
     }>,
     <ModelToAbsolute: {
       "domains": [

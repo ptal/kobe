@@ -70,15 +70,6 @@ struct
     in
     aux (Measure.default problem_path) entries
 
-  let guess_missing_measures m =
-    match m.optimum, m.satisfiability, m.time, m.stats.sols with
-    | Some _, _, _, _ -> { m with satisfiability=True }
-    | None, Unknown, Some _, (-1)
-    | None, False, Some _, (-1)
-    | None, _, Some _, 0 ->
-        { m with satisfiability=False; stats={m.stats with sols=0 } }
-    | _ -> m
-
   let create_measure bench problem_path output =
     let data = file_to_string output in
     let lines = String.split_on_char '\n' data in

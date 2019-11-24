@@ -49,3 +49,12 @@ let update_time bench stats measure =
   let open Transformer in
   if Mtime.Span.compare time_out stats.elapsed <= 0 then measure
   else { measure with time=(Some (Mtime.Span.to_uint64_ns stats.elapsed)) }
+
+let guess_missing_measures m =
+  match m.optimum, m.satisfiability, m.time, m.stats.sols with
+  | Some _, _, _, _ -> { m with satisfiability=True }
+  | None, Unknown, Some _, (-1)
+  | None, False, Some _, (-1)
+  | None, _, Some _, 0 ->
+      { m with satisfiability=False; stats={m.stats with sols=0 } }
+  | _ -> m

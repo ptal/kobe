@@ -6,6 +6,5 @@
  (ocamlopt_flags (:standard -O3))
  (libraries kobecore
     kobe.benchers
-    absolute absolute.core absolute.domains absolute.box
     atdgen extlib mtime mtime.clock.os)
 )

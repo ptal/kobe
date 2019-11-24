@@ -4,5 +4,7 @@
  (modules :standard)
  (libraries kobecore
     kobe.solvers kobe.generators kobe.parsers.scheduling
-    absolute.core absolute.fixpoint absolute.lang absolute.bounds)
+    absolute.core absolute.fixpoint absolute.lang absolute.bounds
+    absolute.domains absolute.box absolute.event_loop absolute.ordered_product
+    absolute.logic_product)
 )

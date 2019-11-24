@@ -40,3 +40,6 @@ val default: string -> measure
 (** [update_time bench stats measure] updates the time entry of `measure` according to `stats`.
     It takes into account possible timeout according to `bench`. *)
 val update_time: bench_instance -> Transformer.global_statistics -> measure -> measure
+
+(** [guess_missing_measures measure] fills some blank in the measure that can be deduced from existing data. *)
+val guess_missing_measures: measure -> measure
