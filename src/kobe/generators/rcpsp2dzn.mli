@@ -27,4 +27,4 @@ open Parsers_scheduling.Rcpsp_data
 
     See also the RCPSP MiniZinc models in the repository [kobe-rcpsp](https://github.com/ptal/kobe-rcpsp).
  *)
-val make_dzn_data: rcpsp -> project -> string
+val make_dzn_data: rcpsp -> string

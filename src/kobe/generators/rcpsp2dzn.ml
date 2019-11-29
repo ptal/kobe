@@ -10,6 +10,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
+open Kobecore
 open Parsers_scheduling.Rcpsp_data
 
 let string_of_list to_string l =
@@ -37,7 +38,12 @@ let string_of_temporal_constraints project =
     ) project.precedence_relations) in
   string_of_2D_list "dcons" dc
 
-let make_dzn_data rcpsp project =
+let check_rcpsp rcpsp =
+  if (List.length rcpsp.projects) > 1 then System.eprintf_and_exit "MiniZinc model for multi-project RCPSP is not yet supported."
+
+let make_dzn_data rcpsp =
+  check_rcpsp rcpsp;
+  let project = List.hd rcpsp.projects in
   (Printf.sprintf "n_res = %d;\n" (List.length rcpsp.resources_capacities)) ^
   (list_to_mzn "rcap" (List.map (List.nth rcpsp.resources_capacities) project.resources_idx)) ^
   (Printf.sprintf "n_tasks = %d;\n" project.jobs_number) ^

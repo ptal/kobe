@@ -44,6 +44,24 @@ let default problem_path =
     restarts = -1;
   } problem_path
 
+let root_unsat problem_path =
+  let stats = Transformer.{
+    start = Mtime_clock.counter ();
+    elapsed = Mtime.Span.zero;
+    nodes = 1;
+    fails = 1;
+    sols = 0;
+    prunes = 0;
+    depth_max = 0;
+    restarts = 0;
+  } in
+  { problem_path=problem_path;
+    time=Some Int64.zero;
+    memory=None;
+    stats=stats;
+    optimum=None;
+    satisfiability=Kleene.False }
+
 let update_time bench stats measure =
   let time_out = System.timeout_of_bench bench in
   let open Transformer in
@@ -53,6 +71,7 @@ let update_time bench stats measure =
 let guess_missing_measures m =
   match m.optimum, m.satisfiability, m.time, m.stats.sols with
   | Some _, _, _, _ -> { m with satisfiability=True }
+  | _, _, _, x when x > 0 -> { m with satisfiability=True }
   | None, Unknown, Some _, (-1)
   | None, False, Some _, (-1)
   | None, _, Some _, 0 ->

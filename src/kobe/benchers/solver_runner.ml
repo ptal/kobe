@@ -60,6 +60,7 @@ struct
       | (`Memory(u), mem)::l ->
           let mem = memory_of_string u mem in
           aux { m with memory=Some(mem) } l
+      | (`Optimum, "unsat")::l -> aux { m with optimum=None } l
       | (`Optimum, obj)::l -> aux { m with optimum=Some (Bound_rat.of_string obj) } l
       | (`Solutions, x)::l -> aux2 m {m.stats with sols=(ios x)} l
       | (`Fails, x)::l -> aux2 m {m.stats with fails=(ios x)} l

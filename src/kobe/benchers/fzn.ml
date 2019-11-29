@@ -14,8 +14,8 @@ open Kobecore
 open Kobecore.Bench_instance_j
 open Generators
 
-let make_mzn_file (solver: fzn_solver) rcpsp =
-  let formula = Models.Rcpsp.formula_of_rcpsp rcpsp solver.decompositions in
+let make_mzn_file (solver: fzn_solver) problem =
+  let formula = Models.formula_of_problem solver.decompositions problem in
   let mzn_data = Formula2mzn.mzn_of_bab_qformula formula solver.fzn.strategy in
   System.make_file mzn_data Mzn.mzn_file
 

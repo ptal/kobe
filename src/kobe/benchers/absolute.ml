@@ -10,16 +10,17 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
+open Core
 open Bounds
+open Lang.Ast
 open Domains.Abstract_domain
 open Logic_product
 open Ordered_product
 open Event_loop
 open Box
+open Octagon
 open Kobecore.System
 open Kobecore.Bench_instance_j
-open Models.Bab_qformula
-open Parsers_scheduling
 open Measure
 
 module type Bencher_sig =
@@ -54,6 +55,31 @@ struct
     A.init (new_uid ()) (box, (logic, event))
 end
 
+module BoxOctLogic(SPLIT: Octagon_split.Octagon_split_sig) =
+struct
+  module Box = Box_base(Box_split.First_fail_bisect)(Bound_int)
+  module Octagon = OctagonZ(SPLIT)
+  module L = Logic_product(LProd_cons(Octagon)(LProd_atom(Box)))
+  module E = Event_loop(Event_cons(Box)(Event_atom(L)))
+
+  module A = Ordered_product(
+    Prod_cons(Octagon)(
+    Prod_cons(Box)(
+    Prod_cons(L)(
+    Prod_atom(E)))))
+
+  let init () : A.t =
+    let new_uid =
+      let uid = ref (-1) in
+      (fun () -> uid := !uid + 1; !uid) in
+    let octagon = ref (Octagon.empty (new_uid ())) in
+    let box = ref (Box.empty (new_uid ())) in
+    let logic = ref (L.init (new_uid ()) (octagon, box)) in
+    let event = ref (E.init (new_uid ()) (box, logic)) in
+    A.init (new_uid ()) (octagon, (box, (logic, event)))
+end
+
+
 module Bencher(MA: Make_AD_sig): Bencher_sig =
 struct
   module A = MA.A
@@ -83,10 +109,11 @@ struct
       let a = MA.init () in
       let a = A.qinterpret a Exact bf.qf in
       (* let _ = Printf.printf "Successful interpreting of the formula.\n"; flush_all () in *)
+      (* Format.printf "AD: \n %a\n" A.print a; *)
       let solver = make_solver_kind a bf in
       let timeout = T.Timeout(timeout_of_bench bench) in
       let transformer = T.init a [timeout; solver] in
-      let (gs, _) =
+      let (gs,_) =
         try Solver.solve transformer
         with Solver.T.StopSearch t -> t in
       Measure.init gs.stats problem_path
@@ -94,27 +121,31 @@ struct
       |> update_result gs bf.optimise
       |> Measure.guess_missing_measures
       |> Csv_printer.print_as_csv bench
-    with Lang.Ast.Wrong_modelling msg ->
-      Csv_printer.print_exception problem_path ("\n" ^ msg)
+    with
+    | Bot.Bot_found ->
+        Csv_printer.print_as_csv bench (Measure.root_unsat problem_path)
+    | Lang.Ast.Wrong_modelling msg ->
+        Csv_printer.print_exception problem_path ("\n" ^ msg)
     | e -> begin
-      Printexc.print_backtrace stdout;
-      Csv_printer.print_exception problem_path (Printexc.to_string e)
+        Printexc.print_backtrace stdout;
+        Csv_printer.print_exception problem_path (Printexc.to_string e)
     end
 
-  let bench_rcpsp_instance bench solver problem_path =
-    let rcpsp = Scheduling.read_rcpsp problem_path in
-    if (List.length rcpsp.projects) > 1 then
-      eprintf_and_exit "AbSolute model for multi-project RCPSP is not yet supported.";
-    let bf = Models.Rcpsp.formula_of_rcpsp rcpsp solver.decompositions in
-    bench_instance bench bf problem_path
+  let bench_problem_instance bench solver problem_path =
+    match Parsers.Dispatch.dispatch problem_path with
+    | IGNORE -> ()
+    | WARNING msg -> print_warning msg
+    | PROBLEM problem ->
+        let bf = Models.formula_of_problem solver.decompositions problem in
+        bench_instance bench bf problem_path
 
   let bench bench solver =
     Csv_printer.print_csv_header bench;
     let problems = list_of_problems bench in
-    List.iter (bench_rcpsp_instance bench solver) problems
+    List.iter (bench_problem_instance bench solver) problems
 end
 
-(* let make_octagon_strategy : string -> (module Octagon_split.Octagon_split_sig) = function
+let make_octagon_strategy : string -> (module Octagon_split.Octagon_split_sig) = function
 | "MSLF" -> (module Octagon_split.MSLF)
 | "MSLF_all" -> (module Octagon_split.MSLF_all)
 | "MSLF_simple" -> (module Octagon_split.MSLF_simple)
@@ -125,7 +156,7 @@ end
 | "Anti_first_fail_LB" -> (module Octagon_split.Anti_first_fail_LB)
 | "Anti_first_fail_Bisect" -> (module Octagon_split.Anti_first_fail_Bisect)
 | s -> eprintf_and_exit ("The AbSolute strategy `" ^ s ^ "` is unknown for Octagon. Please look into `make_octagon_strategy` for a list of the supported strategies.")
- *)
+
 
 let make_box_strategy : string -> (module Box_split.Box_split_sig) = function
 | "First_fail_LB"  -> (module Box_split.First_fail_LB)
@@ -134,12 +165,11 @@ let make_box_strategy : string -> (module Box_split.Box_split_sig) = function
 
 let bench_absolute bench solver =
   match solver.domain with
-(*
   | "Octagon" ->
       let (module S: Octagon_split.Octagon_split_sig) = make_octagon_strategy solver.strategy in
-      let (module M: RCPSP_sig) = (module RCPSP_Octagon(S)) in
+      let (module M: Make_AD_sig) = (module BoxOctLogic(S)) in
       let (module B: Bencher_sig) = (module Bencher(M)) in
-      B.start_benchmarking bench *)
+      B.bench bench solver
   | "Box" ->
       let (module S: Box_split.Box_split_sig) = make_box_strategy solver.strategy in
       let (module M: Make_AD_sig) = (module BoxIntLogic(S)) in

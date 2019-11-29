@@ -11,8 +11,7 @@
    Lesser General Public License for more details. *)
 
 open Generators
-open Parsers_scheduling
-open Parsers_scheduling.Rcpsp_data
+open Parsers.Dispatch
 open Solvers
 open Kobecore
 open Kobecore.System
@@ -31,9 +30,12 @@ let make_mzn_file (solver: mzn_solver) _ =
   let data = model ^ "\n" ^ search in
   make_file data mzn_file
 
-let make_dzn_file rcpsp =
-  let project = List.hd rcpsp.projects in
-  let data = Rcpsp2dzn.make_dzn_data rcpsp project in
+let make_dzn_file problem =
+  let data =
+    match problem with
+    | RCPSP rcpsp -> Rcpsp2dzn.make_dzn_data rcpsp
+    | SAT _ -> "" (* NOTE: the model already contains everything required. *)
+  in
   make_file data dzn_file
 
 let make_fzn_file fzn_kind_solver mzn_file dzn_file =
@@ -44,14 +46,15 @@ let make_fzn_file fzn_kind_solver mzn_file dzn_file =
   fzn_file
 
 let bench_instance bench fzn_kind_solver make_mzn_file make_dzn_file problem_path =
-  let rcpsp = Scheduling.read_rcpsp problem_path in
-  if (List.length rcpsp.projects) > 1 then System.eprintf_and_exit "MiniZinc model for multi-project RCPSP is not yet supported.";
-  let mzn_file = make_mzn_file rcpsp in
-  let dzn_file = make_dzn_file rcpsp in
-  let fzn_file = make_fzn_file fzn_kind_solver mzn_file dzn_file in
-  let (module Solver: Solver_sig.S) = Solver_sig.make_solver fzn_kind_solver.solver.name in
-  let (module Runner: Solver_runner.S) = (module Solver_runner.Make(Solver)) in
-  Runner.run bench fzn_kind_solver.solver fzn_kind_solver.option problem_path fzn_file
+    match dispatch problem_path with
+    | WARNING msg -> print_warning msg
+    | IGNORE -> ()
+    | PROBLEM problem ->
+        let mzn_file, dzn_file = make_mzn_file problem, make_dzn_file problem in
+        let fzn_file = make_fzn_file fzn_kind_solver mzn_file dzn_file in
+        let (module Solver: Solver_sig.S) = Solver_sig.make_solver fzn_kind_solver.solver.name in
+        let (module Runner: Solver_runner.S) = (module Solver_runner.Make(Solver)) in
+        Runner.run bench fzn_kind_solver.solver fzn_kind_solver.option problem_path fzn_file
 
 let bench_mzn' bench fzn_kind_solver make_mzn_file make_dzn_file =
   Csv_printer.print_csv_header bench;

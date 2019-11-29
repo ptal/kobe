@@ -20,10 +20,11 @@ run-test: [
 ]
 depends: [
   "dune" {build}
-  "ocaml" {>= "4.07.1"}
+  "ocaml" {>= "4.09.0"}
   "absolute" {= "0.5.0"}
   "atdgen" {build}
   "atd"
+  "minisatml"
   "extlib"
   "mtime"
 ]

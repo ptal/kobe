@@ -3,6 +3,6 @@
  (public_name kobe.models)
  (modules :standard)
  (libraries kobecore
-    kobe.parsers.scheduling
+    kobe.parsers.scheduling kobe.parsers
     absolute.core absolute.lang absolute.lang.decompositions absolute.bounds)
 )

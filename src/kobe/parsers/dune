@@ -2,4 +2,5 @@
  (name parsers)
  (public_name kobe.parsers)
  (modules :standard)
+ (libraries absolute.lang kobe.parsers.scheduling kobe.parsers.sat)
 )

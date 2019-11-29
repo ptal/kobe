@@ -37,6 +37,9 @@ val init: Transformer.global_statistics -> string -> measure
     It sets to `-1` non-optional integer fields, to `None` optional field. *)
 val default: string -> measure
 
+(** Default measures when the problem is detected unsatisfiable before the solving starts. *)
+val root_unsat: string -> measure
+
 (** [update_time bench stats measure] updates the time entry of `measure` according to `stats`.
     It takes into account possible timeout according to `bench`. *)
 val update_time: bench_instance -> Transformer.global_statistics -> measure -> measure

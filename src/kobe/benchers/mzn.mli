@@ -11,14 +11,14 @@
    Lesser General Public License for more details. *)
 
 open Kobecore.Bench_instance_j
-open Parsers_scheduling.Rcpsp_data
+open Parsers.Dispatch
 
 val dzn_file: string
 val mzn_file: string
 val fzn_file: string
 
 (** [bench_mzn' bench fzn_kind_solver make_mzn_file make_dzn_file] is similar to `bench_mzn` but is parametrized by functions to create the MZN and DZN files. *)
-val bench_mzn': bench_instance -> fzn_kind_solver -> (rcpsp -> string) -> (rcpsp -> string) -> unit
+val bench_mzn': bench_instance -> fzn_kind_solver -> (problem -> string) -> (problem -> string) -> unit
 
 (** Benchmark a set of problems with a MZN-based solver.
     It prints the benchmark result in a CSV format on the standard output.

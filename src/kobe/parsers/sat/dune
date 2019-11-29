@@ -1,0 +1,6 @@
+(library
+ (name parsers_sat)
+ (public_name kobe.parsers.sat)
+ (modules :standard)
+ (libraries kobecore absolute.core absolute.lang minisatml)
+)

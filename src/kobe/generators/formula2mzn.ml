@@ -15,7 +15,6 @@ open Lang.Ast
 open Core.Types
 open Kobecore
 open Kobecore.System
-open Models.Bab_qformula
 
 let string_of_list l =
   List.fold_left (fun s e -> s ^ e ^ ", ") "" l

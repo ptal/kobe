@@ -10,6 +10,14 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-(** Precondition: Sanity checks on the file path are supposed to be already done, otherwise it can throw I/O related exceptions.
-    The data files is supposed to be well-formatted otherwise a parsing error will occur (but nothing is made to make this error readable since it ill-formatting is not the responsibility of this library). *)
-val read_rcpsp: string -> Rcpsp_data.rcpsp
+open Parsers.Dispatch
+open Kobecore.System
+open Kobecore.Bench_desc_j
+
+let unsupported_decomposition name decompositions =
+  if List.length decompositions > 0 then
+     eprintf_and_exit (name ^ " does not support decomposition, but `" ^ (List.hd decompositions).name ^ "` was provided.")
+
+let formula_of_problem decompositions = function
+  | RCPSP rcpsp -> Rcpsp.formula_of_rcpsp rcpsp decompositions
+  | SAT bf -> (unsupported_decomposition "SAT" decompositions; bf)

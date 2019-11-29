@@ -25,8 +25,10 @@ let parse_output lines is_interesting sep solver_to_kobe extract_key_value =
       try
         let key, value = extract_key_value l in
         let key, value = String.trim key, String.trim value in
-        let key = List.assoc key solver_to_kobe in
-        [(key, value)]
+        if value = "" then []
+        else
+          let key = List.assoc key solver_to_kobe in
+          [(key, value)]
       with Not_found -> []
      )
   |> List.flatten

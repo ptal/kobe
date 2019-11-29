@@ -15,7 +15,6 @@ open Lang
 open Lang.Ast
 open Lang_decompositions.Cumulative
 open Parsers_scheduling.Rcpsp_data
-open Bab_qformula
 open Kobecore
 
 module Rcpsp_model(D: Cumulative_decomposition) =

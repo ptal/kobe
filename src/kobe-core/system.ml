@@ -2,13 +2,6 @@ open Printf
 open Bench_instance_t
 
 let json_ext = ".json"
-let psplib_ext = ".sm"
-let patterson_ext = ".rcp"
-let pro_gen_ext = ".sch"
-let dimacs_ext = ".cnf"
-let rcpsp_supported_extensions = [psplib_ext; patterson_ext; pro_gen_ext]
-let sat_supported_extensions = [dimacs_ext]
-let supported_extensions = rcpsp_supported_extensions@sat_supported_extensions
 let usage = "Usage: absolute_bench <configuration file>\n"
 
 let output_file = "out.txt"
@@ -83,20 +76,6 @@ let end_with s tail =
   contain_string s tail (fun s tail_len ->
     String.sub s ((String.length s) - tail_len) tail_len)
 
-let check_problem_file_format problem_path =
-  if Sys.is_directory problem_path then begin
-    if end_with problem_path "solution" || end_with problem_path "optimum" then ()
-    else print_warning ("subdirectory " ^ problem_path ^ " ignored.");
-    false end
-  else
-    let ext = String.lowercase_ascii (Filename.extension problem_path) in
-    match List.find_opt (String.equal ext) supported_extensions with
-    | Some _ -> true
-    | None ->
-        (print_warning ("file \"" ^ problem_path ^
-        "\" ignored (expected extension `" ^ ext ^ "`).");
-        false)
-
 let is_digit c = c >= '0' && c <= '9'
 
 (* Extract the longest number in `s` starting at position `i`. *)
@@ -122,7 +101,7 @@ let natural_comparison x y =
     else
       let a = get x i in
       let b = get y j in
-      match Pervasives.compare a b with
+      match Stdlib.compare a b with
       | _ when is_digit a && is_digit b -> compare_number_sequence i j
       | 0 -> aux (i+1) (j+1)
       | r -> r
@@ -130,7 +109,7 @@ let natural_comparison x y =
     let (n, i') = extract_number x i in
     let (m, j') = extract_number y j in
     (* let _ = Printf.printf "%d , %d\n" n m in *)
-    match Pervasives.compare n m with
+    match Stdlib.compare n m with
     | 0 -> aux i' j'
     | r -> r
   in
@@ -150,8 +129,7 @@ let list_of_problems bench =
     let files = Sys.readdir path in
     Array.sort natural_comparison files;
     Array.to_list files |>
-    List.map (fun x -> path ^ x) |>
-    List.filter check_problem_file_format
+    List.map (fun x -> path ^ x)
   else
     eprintf_and_exit ("The problem set path `" ^ path ^ "` must be a directory. The structure of the input database must follow some conventions described in the benchmarking manual.")
 

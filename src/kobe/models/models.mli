@@ -10,15 +10,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Kobecore.System
+open Lang.Ast
+open Parsers.Dispatch
+open Kobecore.Bench_instance_j
 
-let read_rcpsp problem_path =
-  let ext = String.lowercase_ascii (Filename.extension problem_path) in
-  if String.equal ext psplib_ext then
-    Sm.read_sm_file problem_path
-  else if String.equal ext patterson_ext then
-    Patterson.read_patterson_file problem_path
-  else if String.equal ext pro_gen_ext then
-    Pro_gen_max.read_pro_gen_file problem_path
-  else
-    eprintf_and_exit ("Unknown file extension `" ^ ext ^ "`.")
+val formula_of_problem: decomposition list -> problem -> bab_qformula

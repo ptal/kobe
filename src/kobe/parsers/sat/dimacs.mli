@@ -10,16 +10,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-(** This module represents a data structure to store a formula along with its variable to optimise. *)
-
 open Lang.Ast
 
-type optimization_kind =
-  | Minimize of var
-  | Maximize of var
-  | Satisfy
-
-type bab_qformula = {
-  qf: qformula;
-  optimise: optimization_kind
-}
+(** The logical formula is directly created.
+    Variables are named from `b0` to `b(N-1)`. *)
+val read_dimacs_file: string -> bab_qformula

@@ -14,7 +14,7 @@
     generate the logical formula of the RCPSP/max.
     Note that this module could be easily extended to take into account continuous tasks duration. *)
 
-open Bab_qformula
+open Lang.Ast
 open Parsers_scheduling.Rcpsp_data
 open Kobecore.Bench_instance_j
 

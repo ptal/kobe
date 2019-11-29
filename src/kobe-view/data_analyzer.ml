@@ -195,7 +195,7 @@ let rec file_to_lines file =
   let line = bscanf file "%[^\n]" (fun x -> x) in
   try
     if String.length line <> 0 then
-      let _ = bscanf file "\n" (fun x -> x) in
+      let _ = bscanf file "\n" () in
       line :: (file_to_lines file)
     else
       []

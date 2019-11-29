@@ -5,6 +5,6 @@
  (libraries kobecore
     kobe.solvers kobe.generators kobe.parsers.scheduling
     absolute.core absolute.fixpoint absolute.lang absolute.bounds
-    absolute.domains absolute.box absolute.event_loop absolute.ordered_product
-    absolute.logic_product)
+    absolute.domains absolute.box absolute.octagon absolute.event_loop
+    absolute.ordered_product absolute.logic_product)
 )
