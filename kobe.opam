@@ -1,10 +1,10 @@
 url {
-  src: "https://github.com/ptal/kobe/zipball/v0.5.0"
+  src: "https://github.com/ptal/kobe/zipball/v0.6.0"
 }
 opam-version: "2.0"
-maintainer: "Pierre Talbot <pierre.talbot@univ-nantes.fr>"
+maintainer: "Pierre Talbot <pierre.talbot@uni.lu>"
 authors: [
-  "Pierre Talbot <pierre.talbot@univ-nantes.fr>"
+  "Pierre Talbot <pierre.talbot@uni.lu>"
   "Tom Perroux <tom.perroux@etu.univ-nantes.fr>"
 ]
 homepage: "https://github.com/ptal/kobe"
@@ -21,7 +21,7 @@ run-test: [
 depends: [
   "dune" {build}
   "ocaml" {>= "4.09.0"}
-  "absolute" {= "0.5.0"}
+  "absolute" {= "0.6.0"}
   "atdgen" {build}
   "atd"
   "minisatml"

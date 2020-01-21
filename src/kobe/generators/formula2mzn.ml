@@ -51,9 +51,9 @@ let make_search_annot name vars strategy =
 let mzn_search_annot vars strategy =
   let split_on_ty (iv,bv,fv) (v,ty) =
     match ty with
-    | Concrete Int | Abstract Integer -> (v::iv, bv, fv)
+    | Concrete Int | Abstract (Machine Z) -> (v::iv, bv, fv)
     | Abstract Bool -> (iv, v::bv, fv)
-    | Concrete Real | Abstract Float -> (iv, bv, v::fv)
+    | Concrete Real | Abstract (Machine F) -> (iv, bv, v::fv)
     | _ -> unsupported_type ty
   in
   let iv, bv, fv = List.fold_left split_on_ty ([],[],[]) vars in
@@ -65,9 +65,9 @@ let mzn_search_annot vars strategy =
   Printf.sprintf "solve::seq_search([%s])" (string_of_list annots)
 
 let mzn_of_type = function
-  | Concrete Int | Abstract Integer -> "int"
+  | Concrete Int | Abstract (Machine Z) -> "int"
   | Abstract Bool -> "bool"
-  | Concrete Real | Abstract Float -> "float"
+  | Concrete Real | Abstract (Machine F) -> "float"
   | ty -> unsupported_type ty
 
 (* Do not close with `;` the `solve` item yet. *)

@@ -49,8 +49,8 @@ struct
     let shared_constraints = D.shared_constraints tasks horizon D.default_name_factory in
     let cumulatives = List.mapi (make_cumulative rcpsp project horizon)
       project.resources_idx in
-    let cumulatives = QFFormula (Rewritting.conjunction cumulatives) in
-    Rewritting.q_conjunction [shared_constraints; cumulatives]
+    let cumulatives = Rewritting.conjunction cumulatives in
+    Rewritting.map_formula (fun f -> Rewritting.conjunction [f; cumulatives]) shared_constraints
 
   let time_variables project =
     List.map (fun job -> start_job_name job.job_index) project.jobs
@@ -86,9 +86,10 @@ struct
     let var_domains = var_domain_constraints project in
     let precedences = temporal_constraints project in
     let cumulatives = all_cumulatives rcpsp project in
-    let all_constraints = Rewritting.q_conjunction
-      [(QFFormula (Rewritting.conjunction [var_domains; precedences]));
-      cumulatives] in
+    let all_constraints =
+      Rewritting.map_formula
+        (fun f -> Rewritting.conjunction [f; var_domains; precedences])
+        cumulatives in
     { qf=(quantify_time_variables project all_constraints);
       optimise=(Minimize makespan) }
 end

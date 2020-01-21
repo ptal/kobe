@@ -14,11 +14,12 @@ open Core
 open Bounds
 open Lang.Ast
 open Domains.Abstract_domain
-open Logic_product
-open Ordered_product
+open Logic_completion
+open Direct_product
 open Event_loop
 open Box
 open Octagon
+open Sat
 open Kobecore.System
 open Kobecore.Bench_instance_j
 open Measure
@@ -34,51 +35,53 @@ sig
   val init: unit -> A.t
 end
 
+module SAT =
+struct
+  module A = Sat
+  let init () : A.t = Sat.empty 0
+end
+
 module BoxIntLogic(SPLIT: Box_split.Box_split_sig) =
 struct
   module Box = Box_base(SPLIT)(Bound_int)
-  module L = Logic_product(LProd_atom(Box))
+  module L = Logic_completion(Box)
   module E = Event_loop(Event_cons(Box)(Event_atom(L)))
 
-  module A = Ordered_product(
+  module A = Direct_product(
     Prod_cons(Box)(
     Prod_cons(L)(
     Prod_atom(E))))
 
   let init () : A.t =
-    let new_uid =
-      let uid = ref (-1) in
-      (fun () -> uid := !uid + 1; !uid) in
-    let box = ref (Box.empty (new_uid ())) in
-    let logic = ref (L.init (new_uid ()) box) in
-    let event = ref (E.init (new_uid ()) (box, logic)) in
-    A.init (new_uid ()) (box, (logic, event))
+    let box = ref (Box.empty 1) in
+    let lc = ref (L.init L.I.({uid=2; a=box})) in
+    let event = ref (E.init 3 (box, lc)) in
+    A.init 0 (box, (lc, event))
 end
 
 module BoxOctLogic(SPLIT: Octagon_split.Octagon_split_sig) =
 struct
   module Box = Box_base(Box_split.First_fail_bisect)(Bound_int)
   module Octagon = OctagonZ(SPLIT)
-  module L = Logic_product(LProd_cons(Octagon)(LProd_atom(Box)))
+  module BoxOct = Direct_product(Prod_cons(Octagon)(Prod_atom(Box)))
+  module L = Logic_completion(BoxOct)
   module E = Event_loop(Event_cons(Box)(Event_atom(L)))
 
-  module A = Ordered_product(
+  module A = Direct_product(
     Prod_cons(Octagon)(
     Prod_cons(Box)(
+    Prod_cons(BoxOct)(
     Prod_cons(L)(
-    Prod_atom(E)))))
+    Prod_atom(E))))))
 
   let init () : A.t =
-    let new_uid =
-      let uid = ref (-1) in
-      (fun () -> uid := !uid + 1; !uid) in
-    let octagon = ref (Octagon.empty (new_uid ())) in
-    let box = ref (Box.empty (new_uid ())) in
-    let logic = ref (L.init (new_uid ()) (octagon, box)) in
-    let event = ref (E.init (new_uid ()) (box, logic)) in
-    A.init (new_uid ()) (octagon, (box, (logic, event)))
+    let octagon = ref (Octagon.empty 1) in
+    let box = ref (Box.empty 2) in
+    let box_oct = ref (BoxOct.init 3 (octagon, box)) in
+    let lc = ref (L.init {uid=4;a=box_oct}) in
+    let event = ref (E.init 5 (box, lc)) in
+    A.init 0 (octagon, (box, (box_oct, (lc, event))))
 end
-
 
 module Bencher(MA: Make_AD_sig): Bencher_sig =
 struct
@@ -103,12 +106,48 @@ struct
         { measure with optimum=best }
     | Satisfy -> measure (* `gs.stats` already contains the solutions count. *)
 
+  let debug = false
+
+  let debug make_msg =
+    if debug then
+      let _ = Printf.printf "%s\n" (make_msg ()); flush_all () in
+      ()
+    else ()
+
+  let count tf =
+    let open Typing.Tast in
+    let rec faux (_,f) =
+      match f with
+      | TFVar _ -> (0,1)
+      | TCmp _ -> (0,1)
+      | TAnd (tf1, tf2) ->
+          let (vn,cn),(vn',cn') = faux tf1, faux tf2 in
+          (vn+vn', cn+cn')
+      | _ -> (0,1) in
+    let rec aux = function
+      | TQFFormula tf -> faux tf
+      | TExists(_,tqf) ->
+          let (vn,cn) = aux tqf in
+          (vn+1, cn)
+    in aux tf
+
   let bench_instance bench bf problem_path =
     try
       (* Format.printf "%a\n" Lang.Pretty_print.print_qformula bf.qf; *)
       let a = MA.init () in
-      let a = A.qinterpret a Exact bf.qf in
-      (* let _ = Printf.printf "Successful interpreting of the formula.\n"; flush_all () in *)
+      let adty = match MA.A.type_of a with
+        | Some adty -> adty
+        | None -> raise (Wrong_modelling "The given abstract domain does not have a type.") in
+      let tf = Typing.Infer.infer_type adty bf.qf in
+      debug (fun () -> "Successfully typed the formula.");
+      debug (fun () ->
+        let vn, cn = count tf in
+        let vn, cn = string_of_int vn, string_of_int cn in
+        "There are" ^ vn ^ " variables and " ^ cn ^ " constraints (shared by AND connector).");
+      let a, cs = A.interpret a Exact tf in
+      debug (fun () -> "Successfully interpreted the formula.");
+      let a = List.fold_left A.weak_incremental_closure a cs in
+      debug (fun () -> "Successfully added constraints.");
       (* Format.printf "AD: \n %a\n" A.print a; *)
       let solver = make_solver_kind a bf in
       let timeout = T.Timeout(timeout_of_bench bench) in
@@ -157,14 +196,21 @@ let make_octagon_strategy : string -> (module Octagon_split.Octagon_split_sig) =
 | "Anti_first_fail_Bisect" -> (module Octagon_split.Anti_first_fail_Bisect)
 | s -> eprintf_and_exit ("The AbSolute strategy `" ^ s ^ "` is unknown for Octagon. Please look into `make_octagon_strategy` for a list of the supported strategies.")
 
-
 let make_box_strategy : string -> (module Box_split.Box_split_sig) = function
 | "First_fail_LB"  -> (module Box_split.First_fail_LB)
 | "MSLF_simple" -> (module Box_split.MSLF_simple)
 | s -> eprintf_and_exit ("The AbSolute strategy `" ^ s ^ "` is unknown for Box. Please look into `make_box_strategy` for a list of the supported strategies.")
 
+let check_sat_strategy : string -> unit = function
+| "VSIDS"  -> ()
+| s -> eprintf_and_exit ("The AbSolute strategy `" ^ s ^ "` is unknown for SAT. Please look into `check_sat_strategy` for a list of the supported strategies.")
+
 let bench_absolute bench solver =
   match solver.domain with
+   | "SAT" ->
+      check_sat_strategy solver.strategy;
+      let (module B: Bencher_sig) = (module Bencher(SAT)) in
+      B.bench bench solver
   | "Octagon" ->
       let (module S: Octagon_split.Octagon_split_sig) = make_octagon_strategy solver.strategy in
       let (module M: Make_AD_sig) = (module BoxOctLogic(S)) in
