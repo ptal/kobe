@@ -15,6 +15,7 @@ open Bounds
 open Lang.Ast
 open Domains.Abstract_domain
 open Logic_completion
+open Propagator_completion
 open Direct_product
 open Event_loop
 open Box
@@ -44,43 +45,53 @@ end
 module BoxIntLogic(SPLIT: Box_split.Box_split_sig) =
 struct
   module Box = Box_base(SPLIT)(Bound_int)
-  module L = Logic_completion(Box)
-  module E = Event_loop(Event_cons(Box)(Event_atom(L)))
+  module PC = Propagator_completion(Box.Vardom)(Box)
+  module Box_PC = Direct_product(
+    Prod_cons(Box)(
+    Prod_atom(PC)))
+  module L = Logic_completion(Box_PC)
+  module E = Event_loop(Event_cons(PC)(Event_atom(L)))
 
   module A = Direct_product(
     Prod_cons(Box)(
+    Prod_cons(PC)(
     Prod_cons(L)(
-    Prod_atom(E))))
+    Prod_atom(E)))))
 
   let init () : A.t =
     let box = ref (Box.empty 1) in
-    let lc = ref (L.init L.I.({uid=2; a=box})) in
-    let event = ref (E.init 3 (box, lc)) in
-    A.init 0 (box, (lc, event))
+    let pc = ref (PC.init PC.I.{uid=2; a=box}) in
+    let box_pc = ref (Box_PC.init 5 (Shared box, Shared pc)) in
+    let lc = ref (L.init L.I.({uid=3; a=box_pc})) in
+    let event = ref (E.init 4 (pc, lc)) in
+    A.init 0 (Owned box, (Owned pc, (Owned lc, Owned event)))
 end
 
 module BoxOctLogic(SPLIT: Octagon_split.Octagon_split_sig) =
 struct
   module Box = Box_base(Box_split.First_fail_bisect)(Bound_int)
+  module PC = Propagator_completion(Box.Vardom)(Box)
   module Octagon = OctagonZ(SPLIT)
-  module BoxOct = Direct_product(Prod_cons(Octagon)(Prod_atom(Box)))
-  module L = Logic_completion(BoxOct)
-  module E = Event_loop(Event_cons(Box)(Event_atom(L)))
-
-  module A = Direct_product(
+  module BoxOct = Direct_product(
     Prod_cons(Octagon)(
     Prod_cons(Box)(
+    Prod_atom(PC))))
+  module L = Logic_completion(BoxOct)
+  module E = Event_loop(Event_cons(PC)(Event_atom(L)))
+
+  module A = Direct_product(
     Prod_cons(BoxOct)(
     Prod_cons(L)(
-    Prod_atom(E))))))
+    Prod_atom(E))))
 
   let init () : A.t =
     let octagon = ref (Octagon.empty 1) in
     let box = ref (Box.empty 2) in
-    let box_oct = ref (BoxOct.init 3 (octagon, box)) in
-    let lc = ref (L.init {uid=4;a=box_oct}) in
-    let event = ref (E.init 5 (box, lc)) in
-    A.init 0 (octagon, (box, (box_oct, (lc, event))))
+    let pc = ref (PC.init {uid=3; a=box}) in
+    let box_oct = ref (BoxOct.init 4 (Owned octagon, (Owned box, Owned pc))) in
+    let lc = ref (L.init {uid=5;a=box_oct}) in
+    let event = ref (E.init 6 (pc, lc)) in
+    A.init 0 (Owned box_oct, (Owned lc, Owned event))
 end
 
 module Bencher(MA: Make_AD_sig): Bencher_sig =
@@ -131,6 +142,15 @@ struct
           (vn+1, cn)
     in aux tf
 
+  (* let print_node _ _ _ = () *)
+  (* let print_node status _ _ =
+    let indent = List.fold_left (fun acc _ -> acc ^ " ") "" (Tools.range 1 depth) in
+    (* Format.printf "%s[%s]%a\n" indent status MA.A.print node *)
+    Format.printf "[%s] " status *)
+
+  (* let print_sol _ = () *)
+(*     Format.printf ">> [Solution]\n\n\n\n" *)
+
   let bench_instance bench bf problem_path =
     try
       (* Format.printf "%a\n" Lang.Pretty_print.print_qformula bf.qf; *)
@@ -151,7 +171,10 @@ struct
       (* Format.printf "AD: \n %a\n" A.print a; *)
       let solver = make_solver_kind a bf in
       let timeout = T.Timeout(timeout_of_bench bench) in
-      let transformer = T.init a [timeout; solver] in
+(*       let printer = T.Printer T.{
+        print_node;
+        print_sol } in *)
+      let transformer = T.init a [timeout; solver(* ; printer *)] in
       let (gs,_) =
         try Solver.solve transformer
         with Solver.T.StopSearch t -> t in
