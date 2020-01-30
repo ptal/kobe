@@ -1,5 +1,5 @@
 url {
-  src: "https://github.com/ptal/kobe/zipball/v0.6.0"
+  src: "https://github.com/ptal/kobe/zipball/v0.7.0"
 }
 opam-version: "2.0"
 maintainer: "Pierre Talbot <pierre.talbot@uni.lu>"
@@ -16,12 +16,12 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 run-test: [
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "runtest" "-p" name "-j" jobs]
 ]
 depends: [
   "dune" {build}
   "ocaml" {>= "4.09.0"}
-  "absolute" {= "0.6.0"}
+  "absolute" {= "0.7.0"}
   "atdgen" {build}
   "atd"
   "minisatml"
