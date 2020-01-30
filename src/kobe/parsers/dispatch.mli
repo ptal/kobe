@@ -12,8 +12,10 @@
 
 open Lang.Ast
 open Parsers_scheduling.Rcpsp_data
+open Parsers_scheduling.Jobshop_data
 
 type problem =
+| JOBSHOP of jobshop
 | RCPSP of rcpsp
 | SAT of bab_qformula
 

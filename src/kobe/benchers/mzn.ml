@@ -33,6 +33,7 @@ let make_mzn_file (solver: mzn_solver) _ =
 let make_dzn_file problem =
   let data =
     match problem with
+    | JOBSHOP jobshop -> Jobshop2dzn.make_dzn_data jobshop
     | RCPSP rcpsp -> Rcpsp2dzn.make_dzn_data rcpsp
     | SAT _ -> "" (* NOTE: the model already contains everything required. *)
   in

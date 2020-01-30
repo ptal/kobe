@@ -15,6 +15,7 @@ open Lang
 open Lang.Ast
 open Lang_decompositions.Cumulative
 open Parsers_scheduling.Rcpsp_data
+open Model_utility
 open Kobecore
 
 module Rcpsp_model(D: Cumulative_decomposition) =
@@ -55,20 +56,17 @@ struct
   let time_variables project =
     List.map (fun job -> start_job_name job.job_index) project.jobs
 
-  let quantify_time_variables project formula =
-    let exists formula name =
-      Exists (name, (Concrete Duration.concrete_ty), formula) in
+  let quantify_time_variables project qf =
     let vars = time_variables project in
-    List.fold_left exists formula (List.rev vars)
+    quantify_vars vars (Concrete Duration.concrete_ty) qf
 
   let var_domain_constraints project =
-    let dom u v = And(
-      Cmp (Var v, GEQ, Cst (Bound_rat.zero, Int)),
-      Cmp (Var v, LEQ, Cst (Bound_rat.of_int u, Int)))
-    in
     let vars = time_variables project in
-    Rewritting.conjunction
-      ([(dom 0 (List.hd vars))]@(List.map (dom project.horizon) (List.tl vars)))
+    let ty = Duration.concrete_ty in
+    And(
+      dom_of_var ty Bound_rat.zero Bound_rat.zero (List.hd vars),
+      dom_of_vars (List.tl vars) ty Bound_rat.zero (Bound_rat.of_int project.horizon)
+    )
 
   (* Generalized temporal constraints: ensure a precedence (with a possible timelag) between the tasks. *)
   let temporal_constraints project =

@@ -19,5 +19,8 @@ let unsupported_decomposition name decompositions =
      eprintf_and_exit (name ^ " does not support decomposition, but `" ^ (List.hd decompositions).name ^ "` was provided.")
 
 let formula_of_problem decompositions = function
+  | JOBSHOP jobshop ->
+      unsupported_decomposition "JOBSHOP" decompositions;
+      Jobshop.formula_of_jobshop jobshop
   | RCPSP rcpsp -> Rcpsp.formula_of_rcpsp rcpsp decompositions
   | SAT bf -> (unsupported_decomposition "SAT" decompositions; bf)

@@ -15,8 +15,10 @@ open Kobecore.System
 open Parsers_sat
 open Parsers_scheduling
 open Parsers_scheduling.Rcpsp_data
+open Parsers_scheduling.Jobshop_data
 
 type problem =
+| JOBSHOP of jobshop
 | RCPSP of rcpsp
 | SAT of bab_qformula
 
@@ -33,6 +35,7 @@ let dispatch problem_path =
   else
     let ext = String.lowercase_ascii (Filename.extension problem_path) in
     match ext with
+    | ".jss" -> PROBLEM (JOBSHOP (Jobshop_jss.read_jobshop_file problem_path))
     | ".sm" -> PROBLEM (RCPSP (Sm.read_sm_file problem_path))
     | ".rcp" -> PROBLEM (RCPSP (Patterson.read_patterson_file problem_path))
     | ".sch" -> PROBLEM (RCPSP (Pro_gen_max.read_pro_gen_file problem_path))
