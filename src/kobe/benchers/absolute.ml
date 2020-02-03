@@ -94,6 +94,24 @@ struct
     A.init 0 (Owned box_oct, (Owned lc, Owned event))
 end
 
+module LCOct(SPLIT: Octagon_split.Octagon_split_sig) =
+struct
+  module Octagon = OctagonZ(SPLIT)
+  module L = Logic_completion(Octagon)
+  module E = Event_loop(Event_atom(L))
+
+  module A = Direct_product(
+    Prod_cons(Octagon)(
+    Prod_cons(L)(
+    Prod_atom(E))))
+
+  let init () : A.t =
+    let octagon = ref (Octagon.empty 1) in
+    let lc = ref (L.init {uid=2;a=octagon}) in
+    let event = ref (E.init 3 lc) in
+    A.init 0 (Owned octagon, (Owned lc, Owned event))
+end
+
 module Bencher(MA: Make_AD_sig): Bencher_sig =
 struct
   module A = MA.A
@@ -217,6 +235,10 @@ let make_octagon_strategy : string -> (module Octagon_split.Octagon_split_sig) =
 | "Min_max_Bisect" -> (module Octagon_split.Min_max_Bisect)
 | "Anti_first_fail_LB" -> (module Octagon_split.Anti_first_fail_LB)
 | "Anti_first_fail_Bisect" -> (module Octagon_split.Anti_first_fail_Bisect)
+| "MSLF_simple_rotated" -> (module Octagon_split.MSLF_simple_rotated)
+| "MSLF_rotated" -> (module Octagon_split.MSLF_rotated)
+| "MSLF_UB" -> (module Octagon_split.MSLF_UB)
+| "MSLF_UB_all" -> (module Octagon_split.MSLF_UB_all)
 | s -> eprintf_and_exit ("The AbSolute strategy `" ^ s ^ "` is unknown for Octagon. Please look into `make_octagon_strategy` for a list of the supported strategies.")
 
 let make_box_strategy : string -> (module Box_split.Box_split_sig) = function
@@ -237,6 +259,11 @@ let bench_absolute bench solver =
   | "Octagon" ->
       let (module S: Octagon_split.Octagon_split_sig) = make_octagon_strategy solver.strategy in
       let (module M: Make_AD_sig) = (module BoxOctLogic(S)) in
+      let (module B: Bencher_sig) = (module Bencher(M)) in
+      B.bench bench solver
+  | "LC-Oct" ->
+      let (module S: Octagon_split.Octagon_split_sig) = make_octagon_strategy solver.strategy in
+      let (module M: Make_AD_sig) = (module LCOct(S)) in
       let (module B: Bencher_sig) = (module Bencher(M)) in
       B.bench bench solver
   | "Box" ->

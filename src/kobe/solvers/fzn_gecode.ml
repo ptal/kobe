@@ -14,4 +14,4 @@
 
 let has_time_option = Minizinc_generic.has_time_option
 let parse_output = Minizinc_generic.parse_output
-let make_command exec = Minizinc_generic.make_command (exec ^ " -s")
+let make_command exec timeout = Minizinc_generic.make_command (exec ^ " -s") (timeout*1000)

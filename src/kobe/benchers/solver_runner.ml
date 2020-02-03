@@ -89,6 +89,7 @@ struct
     let command = Solver.make_command solver.exec bench.timeout solver_option input_file in
     let command = wrap_timeout bench command in
     let command = command ^ " > " ^ output_file ^ " 2> " ^ error_file in
+    (* let _ = Printf.printf "%s\n" command; flush_all () in *)
     let _ = call_command command in
     let measure = create_measure bench problem_path output_file in
     Csv_printer.print_as_csv bench measure

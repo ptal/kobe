@@ -18,17 +18,17 @@ open Lang_decompositions
 open Parsers_scheduling.Jobshop_data
 open Model_utility
 
-let duration_of' jobshop i j =
+(* let duration_of' jobshop i j =
   let op = List.nth (List.nth jobshop.jobs i) j in
-  op.duration
+  op.duration *)
 
-let duration_of jobshop i j = Cst (Bound_rat.of_int (duration_of' jobshop i j),Int)
+(* let duration_of jobshop i j = Cst (Bound_rat.of_int (duration_of' jobshop i j),Int) *)
 
 let start_job_name i j = "start_j" ^ (string_of_int i) ^ "_o" ^ (string_of_int j)
-let start_job i j = Var (start_job_name i j)
+(* let start_job i j = Var (start_job_name i j) *)
 
-let end_job jobshop i j = Binary (start_job i j, ADD, duration_of jobshop i j)
-let last_job_op jobshop i = end_job jobshop i ((List.length (List.nth jobshop.jobs i)) - 1)
+(* let end_job jobshop i j = Binary (start_job i j, ADD, duration_of jobshop i j) *)
+(* let last_job_op jobshop i = end_job jobshop i ((List.length (List.nth jobshop.jobs i)) - 1) *)
 
 let makespan_name = "makespan"
 
@@ -43,10 +43,10 @@ let quantify jobshop qf =
   Exists (makespan_name, Concrete Int,f)
 
 let var_domain_constraints jobshop =
-  let vars = time_variables jobshop in
+  let vars = makespan_name::(time_variables jobshop) in
   dom_of_vars vars Int Bound_rat.zero (Bound_rat.of_int jobshop.horizon)
 
-let makespan_constraint jobshop =
+(* let makespan_constraint jobshop =
   let rec max job_idx =
     let last_op = last_job_op jobshop job_idx in
     if job_idx = (jobshop.jobs_number - 1) then
@@ -54,9 +54,17 @@ let makespan_constraint jobshop =
     else
       Funcall("max", [last_op; max (job_idx+1)])
   in
-    Cmp (Var makespan_name, EQ, max 0)
+    Cmp (Var makespan_name, EQ, max 0) *)
 
 module S = Scheduling.Make(Bound_int)
+
+let makespan_constraint jobshop =
+  let precedences = List.mapi (fun i ops ->
+      let j = (List.length ops) - 1 in
+      let op = List.nth ops j in
+      S.precedence (start_job_name i j) makespan_name op.duration
+    ) jobshop.jobs in
+  Rewritting.conjunction precedences
 
 let no_same_time_same_machine_job jobshop machine_idx =
   let tasks = List.flatten (List.mapi (fun i ops ->
@@ -78,11 +86,24 @@ let disjunctive_machine jobshop =
     (Tools.range 0 (jobshop.machines_number - 1)) in
   Rewritting.conjunction disjunctives
 
+(* Generalized temporal constraints: ensure a precedence between the operations. *)
+let temporal_constraints jobshop =
+  let precedences = List.flatten (List.mapi (fun i ops ->
+    List.flatten (List.mapi (fun j op ->
+      if j < ((List.length ops) - 1) then
+        [S.precedence (start_job_name i j) (start_job_name i (j+1)) op.duration]
+      else
+        []
+    ) ops)
+  ) jobshop.jobs) in
+  Rewritting.conjunction precedences
+
 let formula_of_jobshop jobshop =
   let var_domains = var_domain_constraints jobshop in
   let makespan = makespan_constraint jobshop in
+  let precedences = temporal_constraints jobshop in
   let disjunctive = disjunctive_machine jobshop in
   let all_constraints = QFFormula (
-    Rewritting.conjunction [var_domains;disjunctive; makespan]) in
+    Rewritting.conjunction [var_domains; precedences; disjunctive; makespan]) in
   { qf=(quantify jobshop all_constraints);
     optimise=(Minimize makespan_name) }

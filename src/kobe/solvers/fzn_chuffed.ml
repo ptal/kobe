@@ -24,4 +24,4 @@ let parse_output lines =
   else
     Minizinc_generic.parse_output lines
 
-let make_command exec = Minizinc_generic.make_command (exec ^ " -v")
+let make_command exec timeout = Minizinc_generic.make_command (exec ^ " -v") (timeout * 1000)

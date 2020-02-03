@@ -19,6 +19,7 @@ let has_time_option = true
 
 let minizinc_to_kobe_stats = [
   ("restarts", `Restarts);
+  ("solutions", `Solutions);
   ("failures", `Fails);
   ("nodes", `Nodes);
   ("peakMem", `Memory `MB);
