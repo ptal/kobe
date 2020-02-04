@@ -14,29 +14,16 @@ open Core
 open Scanf
 open Jobshop_data
 open Parse_utility
+open Jobshop_jss
 
-let ignore_comments file =
-  try
-    let rec ignore_line () =
-      ignore(bscanf file " #" (fun _ -> ()) "");
-      ignore_lines file 1;
-      ignore_line ()
-    in
-      ignore_line ()
-  with Scanf.Scan_failure _ -> ()
-
-let read_jobshop_info file =
-  let (jobs_number, machines_number) = bscanf file " %d %d" (fun a b -> (a,b)) in
-  { jobs_number; machines_number; jobs = []; horizon=max_int; is_flexible=false }
-
-let read_machine_op file _ =
-  let (machine_idx, duration) = bscanf file " %d %d " (fun a b -> (a,b)) in
-  {machine_idx; duration}
+let read_operation file _ =
+  let number_of_machines = bscanf file " %d " (fun a -> a) in
+  List.map (read_machine_op file) (Tools.range 1 number_of_machines)
 
 let read_job file jobshop _ =
-  let ops = List.map (read_machine_op file) (Tools.range 1 jobshop.machines_number) in
-  let job = List.map (fun opm -> [opm]) ops in
-  { jobshop with jobs=job::jobshop.jobs }
+  let number_of_operations = bscanf file " %d " (fun a -> a) in
+  let ops = List.map (read_operation file) (Tools.range 1 number_of_operations) in
+  { jobshop with jobs=ops::jobshop.jobs }
 
 let read_jobs file jobshop =
   let jobshop = List.fold_left (read_job file) jobshop (Tools.range 1 jobshop.jobs_number) in
@@ -44,10 +31,12 @@ let read_jobs file jobshop =
 
 let read_jobshop file =
   ignore_comments file;
-  read_jobshop_info file |>
-  read_jobs file
+  let jobshop = read_jobshop_info file in
+  (* Skip the potential third number representing the average of machine per operation. *)
+  ignore_lines file 1;
+  read_jobs file jobshop
 
-let read_jobshop_file (problem_path: string) : jobshop =
+let read_flexible_jobshop_file (problem_path: string) : jobshop =
   let file = Scanning.open_in problem_path in
   let jobshop = read_jobshop file in
   Scanning.close_in file;

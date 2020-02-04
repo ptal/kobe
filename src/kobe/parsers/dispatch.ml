@@ -36,6 +36,7 @@ let dispatch problem_path =
     let ext = String.lowercase_ascii (Filename.extension problem_path) in
     match ext with
     | ".jss" -> PROBLEM (JOBSHOP (Jobshop_jss.read_jobshop_file problem_path))
+    | ".fjs" -> PROBLEM (JOBSHOP (Flexible_jobshop_fjs.read_flexible_jobshop_file problem_path))
     | ".sm" -> PROBLEM (RCPSP (Sm.read_sm_file problem_path))
     | ".rcp" -> PROBLEM (RCPSP (Patterson.read_patterson_file problem_path))
     | ".sch" -> PROBLEM (RCPSP (Pro_gen_max.read_pro_gen_file problem_path))

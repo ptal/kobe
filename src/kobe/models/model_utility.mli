@@ -24,4 +24,4 @@ val dom_of_var: var_concrete_ty -> Bound_rat.t -> Bound_rat.t -> string -> formu
 
 (** [dom_of_vars vars ty l u] Conjunction of the constraints of the variables in `vars` in the interval `(l,u)`.
     Constants are given the type `ty`. *)
-val dom_of_vars: string list -> var_concrete_ty -> Bound_rat.t -> Bound_rat.t -> formula
+val dom_of_vars: string list -> var_concrete_ty -> Bound_rat.t -> Bound_rat.t -> formula list

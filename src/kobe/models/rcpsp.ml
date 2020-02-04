@@ -31,7 +31,7 @@ struct
     let r = List.nth job.resources_usage ri in
     let task = D.{
       start=start_job_name job.job_index;
-      duration=Duration.of_int_up job.duration; } in
+      duration=Param (Duration.of_int_up job.duration); } in
     D.{ task; id=job.job_index;
       resources_usage = Resource.of_int_up r }
 
@@ -63,15 +63,18 @@ struct
   let var_domain_constraints project =
     let vars = time_variables project in
     let ty = Duration.concrete_ty in
-    And(
-      dom_of_var ty Bound_rat.zero Bound_rat.zero (List.hd vars),
-      dom_of_vars (List.tl vars) ty Bound_rat.zero (Bound_rat.of_int project.horizon)
+    Rewritting.conjunction (
+      (dom_of_var ty Bound_rat.zero Bound_rat.zero (List.hd vars))::
+      (dom_of_vars (List.tl vars) ty Bound_rat.zero (Bound_rat.of_int project.horizon))
     )
 
   (* Generalized temporal constraints: ensure a precedence (with a possible timelag) between the tasks. *)
   let temporal_constraints project =
     let precedence_constraint (prec:precedence) (j,w) =
-      D.precedence (start_job_name prec.job_index) (start_job_name j) (Duration.of_int_up w) in
+      D.precedence
+        (start_job_name prec.job_index)
+        (start_job_name j)
+        (Param (Duration.of_int_up w)) in
     let all_successors (precedence:precedence) =
       List.map (precedence_constraint precedence)
         (List.map2 (fun x y -> (x,y)) precedence.job_successors precedence.weights) in

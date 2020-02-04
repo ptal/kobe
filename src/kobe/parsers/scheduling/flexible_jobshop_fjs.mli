@@ -10,16 +10,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Scanf
-open Jobshop_data
-
 (** Given a filename, parse its data into a Jobshop structure.
-    The data is supposed to be formatted according to the normal jobshop scheduling format.
+    The data is supposed to be formatted according to the flexible jobshop scheduling format.
     See also the [documentation](https://ptal.github.io/scheduling-data.html). *)
-val read_jobshop_file: string -> Jobshop_data.jobshop
-
-(** Some reusable functions across formats. *)
-val ignore_comments: Scanning.in_channel -> unit
-val read_jobshop_info: Scanning.in_channel -> jobshop
-val read_machine_op: Scanning.in_channel -> int -> machine_operation
-
+val read_flexible_jobshop_file: string -> Jobshop_data.jobshop

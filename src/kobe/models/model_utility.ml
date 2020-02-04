@@ -10,7 +10,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Lang
 open Lang.Ast
 
 let quantify_vars vars ty formula =
@@ -24,4 +23,4 @@ let dom_of_var ty l u v =
     Cmp (Var v, LEQ, Cst (u, ty)))
 
 let dom_of_vars vars ty l u =
-  Rewritting.conjunction (List.map (dom_of_var ty l u) vars)
+  List.map (dom_of_var ty l u) vars
