@@ -5,4 +5,6 @@
  (libraries kobecore
     kobe.models
     absolute.core absolute.lang absolute.bounds)
+  (flags :standard)
+  (ocamlopt_flags (:standard -O3))
 )

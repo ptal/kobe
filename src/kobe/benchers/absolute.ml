@@ -50,14 +50,11 @@ struct
   let search_strategy _ = Simple
 end
 
-module BoxIntLogic(SPLIT: Box_split.Box_split_sig) =
+module LC_Box(SPLIT: Box_split.Box_split_sig) =
 struct
   module Box = Box_base(SPLIT)(Bound_int)
   module PC = Propagator_completion(Box.Vardom)(Box)
-  module Box_PC = Direct_product(
-    Prod_cons(Box)(
-    Prod_atom(PC)))
-  module L = Logic_completion(Box_PC)
+  module L = Logic_completion(PC)
   module E = Event_loop(Event_cons(PC)(Event_atom(L)))
 
   module A = Direct_product(
@@ -66,16 +63,34 @@ struct
     Prod_cons(L)(
     Prod_atom(E)))))
 
+  let box_uid = 1
+  let pc_uid = 2
+  let lc_uid = 3
+
   let init () : A.t =
-    let box = ref (Box.empty 1) in
-    let pc = ref (PC.init PC.I.{uid=2; a=box}) in
-    let box_pc = ref (Box_PC.init 5 (Shared box, Shared pc)) in
-    let lc = ref (L.init L.I.({uid=3; a=box_pc})) in
+    let box = ref (Box.empty box_uid) in
+    let pc = ref (PC.init PC.I.{uid=pc_uid; a=box}) in
+    let lc = ref (L.init L.I.({uid=lc_uid; a=pc})) in
     let event = ref (E.init 4 (pc, lc)) in
     A.init 0 (Owned box, (Owned pc, (Owned lc, Owned event)))
 
-  let type_formula = Typing.Infer.infer_type
-  let search_strategy _ = Simple
+  let type_formula adty tf =
+    let tf = Typing.Infer.infer_type adty tf in
+    let rec aux (u, f) =
+      let uid = if u = box_uid then pc_uid else u in
+      match f with
+      | TCmp c -> uid, TCmp c
+      | TFVar v -> uid, TFVar v
+      | TEquiv (tf1,tf2) -> uid, TEquiv (aux tf1, aux tf2)
+      | TImply (tf1,tf2) -> uid, TImply (aux tf1, aux tf2)
+      | TAnd (tf1,tf2) -> uid, TAnd (aux tf1, aux tf2)
+      | TOr (tf1,tf2) -> uid, TOr (aux tf1, aux tf2)
+      | TNot tf -> uid, TNot (aux tf)
+    in map_tformula aux tf
+
+  let search_strategy _ = Sequence([
+    (lc_uid, Simple);
+    (box_uid, Simple)])
 end
 
 module BoxOctLogic(SPLIT: Octagon_split.Octagon_split_sig) =
@@ -119,14 +134,19 @@ struct
     Prod_cons(L)(
     Prod_atom(E))))
 
+  let oct_uid = 1
+  let lc_uid = 2
+
   let init () : A.t =
-    let octagon = ref (Octagon.empty 1) in
-    let lc = ref (L.init {uid=2;a=octagon}) in
+    let octagon = ref (Octagon.empty oct_uid) in
+    let lc = ref (L.init {uid=lc_uid;a=octagon}) in
     let event = ref (E.init 3 lc) in
     A.init 0 (Owned octagon, (Owned lc, Owned event))
 
   let type_formula = Typing.Infer.infer_type
-  let search_strategy _ = Simple
+  let search_strategy _ = Sequence([
+    (lc_uid, Simple);
+    (oct_uid, Simple)])
 end
 
 module LC_PC_BoxOct(SPLIT: Octagon_split.Octagon_split_sig) =
@@ -299,6 +319,14 @@ struct
     (box_oct_uid, Sequence([
       (oct_uid, Simple);
       (box_uid, Simple)]))])
+(*   Sequence([
+    (box_oct_uid, Sequence([
+      (box_uid, VarView (aux tf));
+      (oct_uid, Simple)]));
+    (lc_uid, Simple);
+    (lc_box_uid, Simple);
+    (box_oct_uid, Sequence([
+      (box_uid, Simple)]))]) *)
 end
 
 module Cascade_BoxOct(SPLIT: Octagon_split.Octagon_split_sig) =
@@ -382,16 +410,123 @@ struct
     aux formula
 
   let search_strategy tf =
-    let rec aux = function
+    let rec aux l = function
       | TQFFormula _ -> []
-      | TExists (tv, tf) when tv.name.[0] = 'd' -> tv.name::(aux tf)
-      | TExists (_, tf) -> aux tf in
+      | TExists (tv, tf) when tv.name.[0] = l -> tv.name::(aux l tf)
+      | TExists (_, tf) -> aux l tf in
    Sequence([
-    (box_oct_uid, Sequence([(box_uid, VarView (aux tf))]));
+    (box_oct_uid, Sequence([(box_uid, VarView (aux 'd' tf))]));
     (lc_uid, Simple);
+    (box_oct_uid, Sequence([(oct_uid, Simple)]));
     (box_oct_uid, Sequence([
-      (oct_uid, Simple);
       (box_uid, Simple)]))])
+end
+
+module Cascade_BoxOct2(SPLIT: Octagon_split.Octagon_split_sig) =
+struct
+  module Octagon = OctagonZ(SPLIT)
+  module Box = Box_base(Box_split.First_fail_LB)(Bound_int)
+  module BoxOct = Direct_product(Prod_cons(Box)(Prod_atom(Octagon)))
+  module PC = Propagator_completion(Box.Vardom)(BoxOct)
+  module Cascade = Cascade_product(PC)(Octagon)
+  module PC_Cascade = Direct_product(Prod_cons(PC)(Prod_atom(Cascade)))
+  module LC = Logic_completion(PC_Cascade)
+  module LC_box = Logic_completion(Box)
+  module E = Event_loop(
+    Event_cons(PC)(
+    Event_cons(Cascade)(
+    Event_cons(LC_box)(
+    Event_atom(LC)))))
+
+  module A = Direct_product(
+    Prod_cons(BoxOct)(
+    Prod_cons(PC)(
+    Prod_cons(Cascade)(
+    Prod_cons(LC)(
+    Prod_cons(LC_box)(
+    Prod_atom(E)))))))
+
+  let oct_uid = 1
+  let box_uid = 2
+  let box_oct_uid = 3
+  let pc_uid = 4
+  let cascade_uid = 5
+  let lc_uid = 6
+  let lc_box_uid = 7
+  let event_uid = 8
+  let pc_cascade_uid = 9
+
+  let init () : A.t =
+    let octagon = ref (Octagon.empty oct_uid) in
+    let box = ref (Box.empty box_uid) in
+    let box_oct = ref (BoxOct.init box_oct_uid (Owned box, Owned octagon)) in
+    let pc = ref (PC.init {uid=pc_uid; a=box_oct}) in
+    let cascade = ref (Cascade.init {uid=cascade_uid; a=pc; b=octagon}) in
+    let pc_cascade = ref (PC_Cascade.init pc_cascade_uid (Shared pc, Shared cascade)) in
+    let lc = ref (LC.init {uid=lc_uid;a=pc_cascade}) in
+    let lc_box = ref (LC_box.init {uid=lc_box_uid;a=box}) in
+    let event = ref (E.init event_uid (pc, (cascade, (lc_box, lc)))) in
+    A.init 0 (Owned box_oct, (Owned pc, (Owned cascade, (Owned lc, (Owned lc_box, Owned event)))))
+
+  (* This function is just for testing purposes, but we should fix the inference engine to support multiple variables, and use that instead. *)
+  let type_formula _ formula =
+    let uid_of_var name =
+      match name.[0] with
+      | 's' -> pc_uid
+      | 'd' -> box_uid
+      | 'm' ->
+          if name = "makespan" then pc_uid
+          else box_uid
+      | _ -> failwith ("unknown variable " ^ name) in
+    let rec classify c =
+      match c with
+      (* Domain of variables. *)
+      | Cmp (Var n, op, e) -> (uid_of_var n, TCmp(Var n, op, e))
+      (* Precedence constraints. *)
+      | Cmp (Binary(Var a, b, Var c), op, Cst (d,e)) -> (oct_uid, TCmp(Binary(Var a, b, Var c), op, Cst (d,e)))
+      | Cmp (Binary(a,b,c), op, e2) -> (cascade_uid, TCmp(Binary(a,b,c), op, e2))
+      (* Disjunctive machine *)
+      | Imply (Cmp b, Or(Cmp c1, Cmp c2)) ->
+          (lc_uid, TImply((pc_uid, TCmp b), (lc_uid, TOr((cascade_uid, TCmp c1), (cascade_uid, TCmp c2)))))
+      | Or(Cmp c1, Cmp c2) ->
+          (lc_uid, TOr((cascade_uid, TCmp c1), (cascade_uid, TCmp c2)))
+      (* Duration assignment *)
+      | Or (And (Cmp c1, Cmp c2), f) ->
+          (lc_box_uid, TOr(classify (And(Cmp c1, Cmp c2)), classify f))
+      | And(Cmp c1, Cmp c2) -> (box_uid, TAnd((box_uid, TCmp c1), (box_uid, TCmp c2)))
+      | f -> failwith ("unrecognized constraint " ^ (Pretty_print.string_of_formula f)) in
+    let rec aux = function
+      | Exists (name, ty, f) ->
+          let uid = uid_of_var name in
+          (* let _ = Printf.printf "Create variable %s in %d\n" name uid in *)
+          TExists ({name;ty;uid}, (aux f))
+      | QFFormula f ->
+          let cons = Rewritting.flatten_conjunction f in
+          let tcons = List.map classify cons in
+          let tqcons = List.map (fun c -> TQFFormula c) tcons in
+          Tast.q_conjunction 0 tqcons in
+    aux formula
+
+  let search_strategy tf =
+    let rec aux l = function
+      | TQFFormula _ -> []
+      | TExists (tv, tf) when tv.name.[0] = l -> tv.name::(aux l tf)
+      | TExists (_, tf) -> aux l tf in
+   Sequence([
+    (box_oct_uid, Sequence([(box_uid, VarView (aux 'd' tf))]));
+    (lc_uid, Simple);
+    (box_oct_uid, Sequence([(oct_uid, Simple)]));
+    (box_oct_uid, Sequence([
+      (box_uid, Simple)]));
+    (lc_box_uid, Simple)])
+  (* Sequence([
+    (box_oct_uid, Sequence([
+      (box_uid, VarView (aux 'd' tf));
+      (oct_uid, Simple)]));
+    (lc_uid, Simple);
+    (lc_box_uid, Simple);
+    (box_oct_uid, Sequence([
+      (box_uid, Simple)]))]) *)
 end
 
 module Bencher(MA: Make_AD_sig): Bencher_sig =
@@ -570,9 +705,14 @@ let bench_absolute bench solver =
       let (module M: Make_AD_sig) = (module Cascade_BoxOct(S)) in
       let (module B: Bencher_sig) = (module Bencher(M)) in
       B.bench bench solver
-  | "Box" ->
+  | "Cascade_BoxOct2" ->
+      let (module S: Octagon_split.Octagon_split_sig) = make_octagon_strategy solver.strategy in
+      let (module M: Make_AD_sig) = (module Cascade_BoxOct2(S)) in
+      let (module B: Bencher_sig) = (module Bencher(M)) in
+      B.bench bench solver
+  | "LC-Box" | "BoxIntLogic" ->
       let (module S: Box_split.Box_split_sig) = make_box_strategy solver.strategy in
-      let (module M: Make_AD_sig) = (module BoxIntLogic(S)) in
+      let (module M: Make_AD_sig) = (module LC_Box(S)) in
       let (module B: Bencher_sig) = (module Bencher(M)) in
       B.bench bench solver
   | d -> eprintf_and_exit ("The AbSolute domain `" ^ d ^ "` is unknown. Please look into `Absolute_bench.bench_absolute` for a list of the supported domains.")

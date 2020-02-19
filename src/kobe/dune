@@ -3,6 +3,7 @@
  (public_name kobe)
  (package kobe)
  (modules :standard)
+ (flags :standard)
  (ocamlopt_flags (:standard -O3))
  (libraries kobecore
     kobe.benchers

@@ -8,4 +8,6 @@
     absolute.domains absolute.box absolute.octagon absolute.sat
     absolute.event_loop absolute.direct_product absolute.cascade_product
     absolute.logic_completion absolute.propagator_completion)
+  (flags :standard)
+  (ocamlopt_flags (:standard -O3))
 )

@@ -5,4 +5,6 @@
  (libraries kobecore
     kobe.parsers.scheduling kobe.parsers
     absolute.core absolute.lang absolute.lang.decompositions absolute.bounds)
+ (flags :standard)
+ (ocamlopt_flags (:standard -O3))
 )

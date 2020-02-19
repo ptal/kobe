@@ -3,4 +3,6 @@
  (public_name kobe.solvers)
  (modules :standard)
  (libraries kobecore absolute.core)
+ (flags :standard)
+ (ocamlopt_flags (:standard -O3))
 )

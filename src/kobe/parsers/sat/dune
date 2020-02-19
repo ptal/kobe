@@ -3,4 +3,6 @@
  (public_name kobe.parsers.sat)
  (modules :standard)
  (libraries kobecore absolute.core absolute.lang minisatml)
+ (flags :standard)
+ (ocamlopt_flags (:standard -O3))
 )
