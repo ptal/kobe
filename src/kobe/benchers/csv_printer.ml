@@ -36,6 +36,7 @@ let csv_field_name = function
   | `Solutions -> "solutions"
   | `Fails -> "fails"
   | `Nodes -> "nodes"
+  | `NodesBeforeLastSol -> "nodes_before_last_sol"
   | `Optimum -> "optimum"
   | `Satisfiability -> "satisfiability"
   | `Restarts -> "restarts"
@@ -84,6 +85,7 @@ let csv_field_value measure = function
   | `Solutions -> (string_of_int measure.stats.sols)
   | `Fails -> (string_of_int measure.stats.fails)
   | `Nodes -> (string_of_int measure.stats.nodes)
+  | `NodesBeforeLastSol -> (string_of_int measure.stats.nodes_before_last_sol)
   | `Optimum -> begin
       match measure.optimum, measure.time with
       | Some(o), _ -> Bound_rat.to_string o

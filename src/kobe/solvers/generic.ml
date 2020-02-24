@@ -12,7 +12,7 @@
 
 let root_node_unsat =
   [(`Time `Sec, "0.01"); (`Restarts, "0");
-   (`Solutions, "0"); (`Fails, "1"); (`Nodes, "1");
+   (`Solutions, "0"); (`Fails, "1"); (`Nodes, "1"); (`NodesBeforeLastSol, "0");
    (`Satisfiability, "unsat"); (`Optimum, "unsat")]
 
 let parse_output lines is_interesting sep solver_to_kobe extract_key_value =

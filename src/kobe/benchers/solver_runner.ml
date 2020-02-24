@@ -63,6 +63,7 @@ struct
       | (`Optimum, "unsat")::l -> aux { m with optimum=None } l
       | (`Optimum, obj)::l -> aux { m with optimum=Some (Bound_rat.of_string obj) } l
       | (`Solutions, x)::l -> aux2 m {m.stats with sols=(ios x)} l
+      | (`NodesBeforeLastSol, x)::l -> aux2 m {m.stats with nodes_before_last_sol=(ios x)} l
       | (`Fails, x)::l -> aux2 m {m.stats with fails=(ios x)} l
       | (`Nodes, x)::l -> aux2 m {m.stats with nodes=(ios x)} l
       | (`Satisfiability, x)::l -> aux { m with satisfiability=kleene_of_string x } l

@@ -93,8 +93,14 @@ struct
       | TNot tf -> uid, TNot (aux tf)
     in map_tformula aux tf
 
-  let search_strategy _ = Sequence([
+  let search_strategy tf =
+    let rec vars_wo_makespan = function
+      | TQFFormula _ -> []
+      | TExists (tv, tf) when tv.name <> "makespan" -> tv.name::(vars_wo_makespan tf)
+      | TExists (_, tf) -> (vars_wo_makespan tf) in
+    Sequence([
     (lc_uid, Simple);
+    (box_uid, VarView (vars_wo_makespan tf));
     (box_uid, Simple)])
 end
 
@@ -288,7 +294,7 @@ struct
       | 's' -> pc_uid
       | 'd' -> box_uid
       | 'm' ->
-          if name = "makespan" then box_uid
+          if name = "makespan" then pc_uid
           else box_uid
       | _ -> failwith ("unknown variable " ^ name) in
     let rec classify c =
@@ -455,7 +461,7 @@ struct
   include Cascade_BoxOct2(SPLIT)
 
   (* This function is just for testing purposes, but we should fix the inference engine to support multiple variables, and use that instead. *)
-  let type_formula _ formula = type_formula box_uid formula
+  let type_formula _ formula = type_formula' box_uid formula
 
   let search_strategy tf =
    Sequence([
@@ -472,7 +478,7 @@ struct
   include Cascade_BoxOct2(SPLIT)
 
   (* This function is just for testing purposes, but we should fix the inference engine to support multiple variables, and use that instead. *)
-  let type_formula _ formula = type_formula box_uid formula
+  let type_formula _ formula = type_formula' pc_uid formula
 
   (* This search strategy is similar to the one given in the MiniZinc model of the flexible jobshop. *)
   let filter_makespan vars = List.filter (fun v -> v <> "makespan") vars
@@ -534,8 +540,8 @@ struct
     in aux tf
 
   (* let print_node _ _ _ = () *)
-(*   let print_node status _ node =
-    Format.printf "[%s]%a\n" status MA.A.print node;
+  (* let print_node status depth node =
+    Format.printf "%d[%s]%a\n" depth status MA.A.print node;
     flush_all ();
     ignore(Scanf.scanf "%c" (fun x -> x)) *)
 

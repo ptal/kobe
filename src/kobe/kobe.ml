@@ -33,7 +33,7 @@ let bench_from_json json_data =
         [help] You can find a full example of the JSON format in benchmark/data/benchmarks.json." msg)
 
 let () =
-  Printexc.record_backtrace true;
+  Printexc.record_backtrace false;
   let bench = bench_from_json (get_bench_desc ()) in
   run_bench bench
   (* Printf.printf "%s" (Yojson.Safe.prettify (string_of_bench_instance bench)) *)

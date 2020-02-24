@@ -17,6 +17,7 @@ type csv_field = [
   | Time of time_unit
   | Memory of memory_unit
   | Solutions
+  | NodesBeforeLastSol
   | Fails
   | Nodes
   | Optimum
