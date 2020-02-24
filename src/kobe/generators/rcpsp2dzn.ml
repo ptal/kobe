@@ -12,19 +12,7 @@
 
 open Kobecore
 open Parsers_scheduling.Rcpsp_data
-
-let string_of_list to_string l =
-  List.fold_left (fun s e -> s ^ (to_string e) ^ ", ") "" l
-
-let list_to_mzn name l =
-  name ^ " = [" ^
-  (string_of_list string_of_int l) ^
-  "];\n"
-
-let string_of_2D_list name l =
-  name ^ " = [|\n" ^
-  (List.fold_left (fun a r -> a ^ (string_of_list string_of_int r) ^ "\n  |") "" l) ^
-  "];\n"
+open Mzn_utility
 
 let string_of_resources project =
   let rr = List.map

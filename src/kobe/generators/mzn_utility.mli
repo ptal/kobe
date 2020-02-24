@@ -10,7 +10,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Parsers_scheduling.Jobshop_data
-
-(* Only data for the flexible extension can be generated. *)
-val make_dzn_data: jobshop -> string
+val string_of_list: ('a -> string) -> 'a list -> string
+val list_to_mzn: string -> int list -> string
+val string_of_set_list: string -> (int * int) list -> string
+val string_of_2D_list: string -> (int list) list -> string

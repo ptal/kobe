@@ -43,6 +43,7 @@ let make_fzn_file fzn_kind_solver mzn_file dzn_file =
   let fzn_file = make_unique_file_name fzn_file in
   let command = Mzn2fzn.make_command fzn_kind_solver.mzn2fzn.exec
     fzn_kind_solver.solver mzn_file dzn_file fzn_file in
+  (* Printf.printf "%s\n" command; *)
   let _ = call_command command in
   fzn_file
 

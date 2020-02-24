@@ -372,9 +372,10 @@ struct
     Prod_cons(BoxOct)(
     Prod_cons(PC)(
     Prod_cons(Cascade)(
+    Prod_cons(PC_Cascade)(
     Prod_cons(LC)(
     Prod_cons(LC_box)(
-    Prod_atom(E)))))))
+    Prod_atom(E))))))))
 
   let oct_uid = 1
   let box_uid = 2
@@ -396,7 +397,7 @@ struct
     let lc = ref (LC.init {uid=lc_uid;a=pc_cascade}) in
     let lc_box = ref (LC_box.init {uid=lc_box_uid;a=box}) in
     let event = ref (E.init event_uid (pc, (cascade, (lc_box, lc)))) in
-    A.init 0 (Owned box_oct, (Owned pc, (Owned cascade, (Owned lc, (Owned lc_box, Owned event)))))
+    A.init 0 (Owned box_oct, (Owned pc, (Owned cascade, (Owned pc_cascade, (Owned lc, (Owned lc_box, Owned event))))))
 
   (* This function is just for testing purposes, but we should fix the inference engine to support multiple variables, and use that instead. *)
   let type_formula' makespan_uid formula =
@@ -483,7 +484,6 @@ struct
       (oct_uid, Simple);
       (box_uid, VarView ["makespan"])]))])
 end
-
 
 module Bencher(MA: Make_AD_sig): Bencher_sig =
 struct

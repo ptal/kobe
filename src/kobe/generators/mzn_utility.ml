@@ -10,7 +10,20 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Parsers_scheduling.Jobshop_data
+let string_of_list to_string l =
+  List.fold_left (fun s e -> s ^ (to_string e) ^ ", ") "" l
 
-(* Only data for the flexible extension can be generated. *)
-val make_dzn_data: jobshop -> string
+let list_template name content =
+  name ^ " = [" ^ content ^ "];\n"
+
+let string_of_set_list name l =
+  let content = string_of_list (fun (l,u) ->
+    (string_of_int l) ^ ".." ^ (string_of_int u)) l in
+  list_template name content
+
+let list_to_mzn name l = list_template name (string_of_list string_of_int l)
+
+let string_of_2D_list name l =
+  name ^ " = [|\n" ^
+  (List.fold_left (fun a r -> a ^ (string_of_list string_of_int r) ^ "\n  |") "" l) ^
+  "];\n"

@@ -15,5 +15,5 @@ open Kobecore
 
 (* Note that on recent system, this executable has been renamed to `minizinc` so we add the additional option "-c".  *)
 let make_command exec solver_config mzn_file dzn_file fzn_file =
-  let no_compile = if (Tools.start_with exec "minizinc") then " -c " else "" in
+  let no_compile = if (Tools.start_with exec "minizinc") then " -c --solver org.minizinc.mzn-fzn " else "" in
   exec ^ no_compile ^ " --no-optimize -I " ^ solver_config.Bench_desc_j.globals ^ " -o " ^ fzn_file ^ " " ^ mzn_file ^ " " ^ dzn_file
