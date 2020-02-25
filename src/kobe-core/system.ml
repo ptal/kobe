@@ -1,3 +1,15 @@
+(* Copyright 2019 Pierre Talbot
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details. *)
+
 open Printf
 open Bench_instance_t
 
@@ -116,12 +128,17 @@ let natural_comparison x y =
     aux 0 0
 
 let remove_trailing_slash dir1 =
-  let l = (String.length dir1) - 1 in
-  if dir1.[l] = Filename.dir_sep.[0] then String.sub dir1 0 l else dir1
+  if String.length dir1 > 1 then
+    let l = (String.length dir1) - 1 in
+    if dir1.[l] = Filename.dir_sep.[0] then String.sub dir1 0 l else dir1
+  else
+    dir1
 
 let concat_dir dir1 dir2 =
   let dir1 = remove_trailing_slash dir1 in
-  dir1 ^ Filename.dir_sep ^ dir2
+  if dir1 = "" then dir2
+  else if dir2 = "" then dir1
+  else dir1 ^ Filename.dir_sep ^ dir2
 
 let list_of_problems bench =
   let path = bench.problem_set_path in
@@ -129,7 +146,7 @@ let list_of_problems bench =
     let files = Sys.readdir path in
     Array.sort natural_comparison files;
     Array.to_list files |>
-    List.map (fun x -> path ^ x)
+    List.map (fun x -> concat_dir path x)
   else
     eprintf_and_exit ("The problem set path `" ^ path ^ "` must be a directory. The structure of the input database must follow some conventions described in the benchmarking manual.")
 

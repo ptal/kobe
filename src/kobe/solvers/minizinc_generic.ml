@@ -56,6 +56,21 @@ let clean_up_entries_if_unsat mzn_entries lines =
   end
   else mzn_entries
 
+let has_solutions mzn_entries =
+  List.exists (fun entry ->
+    match entry with
+    | `Solutions, n -> (int_of_string n) > 0
+    | _ -> false) mzn_entries
+
+let clean_up_minus_1 mzn_entries =
+  let has_no_sol = not (has_solutions mzn_entries) in
+  List.map (fun entry ->
+    match entry with
+    | `Solutions, "-1" -> `Solutions, "0"
+    | `Optimum, "-1" when has_no_sol -> `Optimum, "0"
+    | _ -> entry
+  ) mzn_entries
+
 (* Format: <irrelevant>: key=value *)
 let extract_key_value_mzn split1 =
   let sep2 = '=' in
@@ -77,7 +92,9 @@ let parse_output lines =
         let obj = Scanf.sscanf (List.hd lines) "%s = %d;" (fun _ i -> string_of_int i) in
         mzn_entries@[(`Optimum, obj)]
       with _ -> mzn_entries in
-  clean_up_entries_if_unsat mzn_entries lines
+  let mzn_entries = clean_up_entries_if_unsat mzn_entries lines in
+  let mzn_entries = clean_up_minus_1 mzn_entries in
+  mzn_entries
 
 let make_command exec timeout option input_file =
   exec ^ " -t " ^ (string_of_int timeout) ^ " " ^ option ^ " " ^ input_file

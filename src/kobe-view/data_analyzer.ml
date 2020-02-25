@@ -1,4 +1,17 @@
+(* Copyright 2019 Pierre Talbot
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details. *)
+
 open Scanf
+open Kobecore.System
 
 type optimum =
 | Bounded of int * int (* [lb, ub] is the interval in which the optimum must be if it is satisfiable. *)
@@ -17,6 +30,7 @@ type instance = {
   bound: optimum;
   (* For nodes, solutions and fails, when the information is not available, we set it to 0. *)
   nodes: int;
+  nodes_before_last_sol: int;
   solutions: int;
   fails: int;
 }
@@ -27,6 +41,7 @@ let empty_instance = {
   bound=Bounded(no_lb, no_ub);
   nodes=0;
   solutions=0;
+  nodes_before_last_sol=0;
   fails=0;
 }
 
@@ -90,11 +105,12 @@ let check_solutions_validity optimum strategy =
 
 let compute_delta_lb best opt =
   match best with
-  | Bounded(_, ub) -> ((float_of_int opt) -. (float_of_int ub)) /. (float_of_int ub)
-  | Unsat -> failwith "expected unsatisfiable instance: unreachable (should be checked in `check_solution`)."
+  | Some(Bounded(_, ub)) -> ((float_of_int opt) -. (float_of_int ub)) /. (float_of_int ub)
+  | Some Unsat -> failwith "expected unsatisfiable instance: unreachable (should be checked in `check_solution`)."
+  | None -> 0.
 
 let process_instances optimum name instance (strat: strategy) =
-  let best = Hashtbl.find optimum name in
+  let best = Hashtbl.find_opt optimum name in
   match instance.bound with
   | Bounded(lb,ub) when lb = ub -> {strat with optimum=(strat.optimum + 1)}
   | Bounded(_,ub) when ub <> no_ub -> { strat with
@@ -178,14 +194,6 @@ let content_of_dir dir =
   Array.sort compare files;
   Array.to_list files
 
-let remove_trailing_slash dir1 =
-  let l = (String.length dir1) - 1 in
-  if dir1.[l] = Filename.dir_sep.[0] then String.sub dir1 0 l else dir1
-
-let concat_dir dir1 dir2 =
-  let dir1 = remove_trailing_slash dir1 in
-  dir1 ^ Filename.dir_sep ^ dir2
-
 let subdirs dir =
   List.filter (fun d -> Sys.is_directory (concat_dir dir d)) (content_of_dir dir)
 let subfiles dir =
@@ -216,6 +224,7 @@ let parse_time raw_time =
     let raw_time = remove_trailing_letters raw_time in
     Some (float_of_string raw_time)
 
+(** Parse a CSV line. Ignore if the line is malformed. *)
 let parse_csv_line entries line =
   let push_entry instance entry value =
     match entry with
@@ -224,14 +233,17 @@ let parse_csv_line entries line =
     | "optimum" -> {instance with bound=(parse_bound instance.time value)}
     | "solutions" -> {instance with solutions=(int_of_string value)}
     | "nodes" -> {instance with nodes=(int_of_string value)}
+    | "nodes_before_last_sol" -> {instance with nodes_before_last_sol=(int_of_string value)}
     | "fails" -> {instance with fails=(int_of_string value)}
     | s -> failwith ("unsupported CSV field `" ^ s ^ "`")
   in
   let tokens = clean_split ',' line in
-  let instance = List.fold_left2 push_entry empty_instance entries tokens in
-  (* We call `push_entry` two times because some entries such as `optimum` depends on another entry.
-     It helps to keep an order-independant parsing of the CSV fields. *)
-  List.fold_left2 push_entry instance entries tokens
+  if List.length tokens <> List.length entries then []
+  else
+    let instance = List.fold_left2 push_entry empty_instance entries tokens in
+    (* We call `push_entry` two times because some entries such as `optimum` depends on another entry.
+       It helps to keep an order-independant parsing of the CSV fields. *)
+    [List.fold_left2 push_entry instance entries tokens]
 
 let parse_csv_header file =
   let header = bscanf file "%[^\n]\n" (fun l -> l) in
@@ -244,7 +256,7 @@ let read_strategy solver_path strategy_file =
     (* CSV header contains the recorded fields. *)
     let entries = parse_csv_header file in
     let all_instances = Hashtbl.create 500 in
-    let instances = List.map (parse_csv_line entries) (file_to_lines file) in
+    let instances = List.flatten (List.map (parse_csv_line entries) (file_to_lines file)) in
     List.iter (fun instance -> Hashtbl.add all_instances instance.problem instance) instances;
     {
       name=strategy_file;
@@ -259,6 +271,7 @@ let read_strategy solver_path strategy_file =
 
 let read_solver iset_path solver_dir =
   let solver_path = concat_dir iset_path solver_dir in
+  Printf.printf "%s\n" solver_path;
   let strategy_files = List.filter (fun x -> String.equal (Filename.extension x) ".csv") (subfiles solver_path) in
   { name=solver_dir;
     strategies=(List.map (read_strategy solver_path) strategy_files) }
@@ -283,16 +296,31 @@ let read_optimum_file path =
 
 let read_instances_set pb_path instances_set_dir : instances_set =
   let iset_path = concat_dir pb_path instances_set_dir in
+  Printf.printf "%s\n" iset_path;
+  let optimum = read_optimum_file iset_path in
   let solvers_dir = List.filter
     (fun x -> not (String.equal x optimum_dir)) (subdirs iset_path) in
   { name=instances_set_dir;
     solvers=(List.map (read_solver iset_path) solvers_dir);
-    optimum=(read_optimum_file iset_path) }
+    optimum }
+
+(** Return a list of directory containing an "optimum" directory.
+    Note that the result must be concatenated to `path` to obtain the full path.
+    This is because the subpath is also used as a name. *)
+let rec dirs_with_optimum_dir path subdir =
+  let full_path = concat_dir path subdir in
+  let opt_path = concat_dir full_path optimum_file in
+  if Sys.file_exists opt_path then
+    [subdir]
+  else
+    let subdirs = subdirs full_path in
+    let subdirs = List.map (concat_dir subdir) subdirs in
+    List.flatten (List.map (dirs_with_optimum_dir path) subdirs)
 
 let read_problem db_dir pb_dir =
   let pb_path = concat_dir db_dir pb_dir in
   { name=pb_dir;
-    instances_set=(List.map (read_instances_set pb_path) (subdirs pb_path)) }
+    instances_set=(List.map (read_instances_set pb_path) (dirs_with_optimum_dir pb_path "")) }
 
 let read_database db_dir =
   List.map (read_problem db_dir) (subdirs db_dir)

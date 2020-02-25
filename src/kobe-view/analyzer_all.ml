@@ -1,3 +1,15 @@
+(* Copyright 2019 Pierre Talbot
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details. *)
+
 open Data_analyzer
 
 type strategy_2 = {
@@ -46,13 +58,15 @@ let append_solvers solvers =
   in aux solvers []
 
 let convert_instance problem (instances_set : instances_set) =
+  Printf.printf "%s\n" instances_set.name;
   let nb_instances = (Hashtbl.length (List.hd (List.hd instances_set.solvers).strategies).all) in
   {problem_name = problem.name; instance_name = instances_set.name; nb_instances = nb_instances;strategies = append_solvers instances_set.solvers}
 
 let append_problems (database : problem list) =
-  let rec append_problems_rec database instances =
-  match database with
-  [] -> instances
-  |p::database -> let li = List.map (convert_instance p) p.instances_set in
-  append_problems_rec database (List.append instances li)
-in append_problems_rec database []
+  let rec aux database instances =
+    match database with
+    | [] -> instances
+    | p::database ->
+        let li = List.map (convert_instance p) p.instances_set in
+        aux database (instances@li)
+  in aux database []

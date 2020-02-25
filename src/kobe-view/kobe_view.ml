@@ -1,3 +1,15 @@
+(* Copyright 2019 Pierre Talbot, Tom Perroux
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details. *)
+
 open Kobecore
 open Data_analyzer
 open Instance_inclusion
@@ -145,8 +157,8 @@ let _ =
   try
     let (database : database) = read_database (get_database_dir ()) in
     let (database : database) = process_database database in
-    (* print_inclusion_stats_of_database database *)
-    (* print_database database *)
+    print_inclusion_stats_of_database database;
+    print_database database;
     print_string (to_json_database database)
   with e ->
   begin

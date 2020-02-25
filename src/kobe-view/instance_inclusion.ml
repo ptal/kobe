@@ -1,3 +1,15 @@
+(* Copyright 2019 Pierre Talbot, Tom Perroux
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details. *)
+
 open Data_analyzer
 open Analyzer_all
 
@@ -11,17 +23,19 @@ type instances_inclusion = {
 }
 
 let check_inclusion (strat1 : strategy) (strat2 : strategy) set key =
-  let instance = Hashtbl.find strat1.all key in
-  let instance' = Hashtbl.find strat2.all key in
-  let inter = set.inter in
-  let exter = set.exter in
-  let only_s1 = set.only_s1 in
-  let only_s2 = set.only_s2 in
-  match instance.time,instance'.time with
-  | Some(_),Some(_) -> {set with inter = key::inter}
-  | Some(_), None -> {set with only_s1 = key::only_s1}
-  | None, Some(_) -> {set with only_s2 = key::only_s2}
-  | None, None -> {set with exter = key::exter}
+  try
+    let instance = Hashtbl.find strat1.all key in
+    let instance' = Hashtbl.find strat2.all key in
+    let inter = set.inter in
+    let exter = set.exter in
+    let only_s1 = set.only_s1 in
+    let only_s2 = set.only_s2 in
+    match instance.time,instance'.time with
+    | Some(_),Some(_) -> {set with inter = key::inter}
+    | Some(_), None -> {set with only_s1 = key::only_s1}
+    | None, Some(_) -> {set with only_s2 = key::only_s2}
+    | None, None -> {set with exter = key::exter}
+  with Not_found -> set
 
 let compute_set (strat1 : strategy) (strat2 : strategy) =
   let keys = get_keys strat1.all in
@@ -37,10 +51,13 @@ let solver_view solver_name _ = solver_name
 
 let compute_one_problem instance_name (instances_set:instances_set) view =
   let by_strategy solver_name (strat:strategy) =
-    let instance = Hashtbl.find strat.all instance_name in
-    match instance.time with
-    | Some _ -> [view solver_name strat.name]
-    | None -> [] in
+    try
+      let instance = Hashtbl.find strat.all instance_name in
+      match instance.time with
+      | Some _ -> [view solver_name strat.name]
+      | None -> []
+    with Not_found -> []
+  in
   let by_solver (solver:solver) =
     List.flatten (List.map (by_strategy solver.name) solver.strategies) in
   let all_strats = List.flatten (List.map by_solver instances_set.solvers) in
