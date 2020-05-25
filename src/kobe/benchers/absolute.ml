@@ -19,7 +19,7 @@ open Typing.Tast
 open Domains.Abstract_domain
 open Logic_completion
 open Propagator_completion
-open Cascade_product
+open Delayed_product
 open Direct_product
 open Event_loop
 open Box
@@ -159,7 +159,6 @@ struct
     (lc_uid, Simple);
     (oct_uid, Simple)])
 end
-
 
 module LC_Oct2(SPLIT: Octagon_split.Octagon_split_sig) =
 struct
@@ -364,7 +363,7 @@ struct
   module Box = Box_base(Box_split.First_fail_LB)(Bound_int)
   module BoxOct = Direct_product(Prod_cons(Box)(Prod_atom(Octagon)))
   module PC = Propagator_completion(Box.Vardom)(BoxOct)
-  module Cascade = Cascade_product(PC)(Octagon)
+  module Cascade = Delayed_product(PC)(Octagon)
   module PC_Cascade = Direct_product(Prod_cons(PC)(Prod_atom(Cascade)))
   module LC = Logic_completion(PC_Cascade)
   module LC_box = Logic_completion(Box)
