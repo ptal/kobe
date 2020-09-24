@@ -21,7 +21,7 @@ run-test: [
 depends: [
   "dune" {build}
   "ocaml" {>= "4.09.0"}
-  "absolute" {= "0.10.2"}
+  "absolute" {= "0.10.3"}
   "atdgen" {build}
   "atd"
   "minisatml"

@@ -95,7 +95,7 @@ struct
   let decompress input_file =
     let decompressed_file = "/tmp/" ^ (Filename.remove_extension (Filename.basename input_file)) in
     if Sys.file_exists decompressed_file then
-      decompressed_file
+      true, decompressed_file
     else
       match Filename.extension input_file with
       | ".xz" ->
@@ -103,13 +103,17 @@ struct
             let decompress_xz = "xz -k -c -d " ^ input_file ^ " > " ^ decompressed_file in
             (* let _ = Printf.printf "%s\n" decompress_xz ; flush_all () in *)
             match call_command decompress_xz with
-            | 0 -> decompressed_file
+            | 0 -> true, decompressed_file
             | _ -> eprintf_and_exit ("Could not decompress .xz file `" ^ input_file ^ "`. Do you have `xz` installed?")
           end
-      | _ -> input_file
+      | _ -> false, input_file
+
+  let clean_decompressed_file is_decompressed input_file =
+    if is_decompressed then
+      let _ = call_command ("rm " ^ input_file) in ()
 
   let run (bench:bench_instance) solver solver_option problem_path input_file =
-    let input_file = decompress input_file in
+    let is_decompressed, input_file = decompress input_file in
     let solver_option = match solver_option with Some x -> x.option | None -> "" in
     let output_file = make_unique_file_name output_file in
     let error_file = make_unique_file_name error_file in
@@ -119,5 +123,6 @@ struct
     (* let _ = Printf.printf "%s\n" command; flush_all () in *)
     let _ = call_command command in
     let measure = create_measure bench problem_path output_file in
+    let _ = clean_decompressed_file is_decompressed input_file in
     Csv_printer.print_as_csv bench measure
 end
