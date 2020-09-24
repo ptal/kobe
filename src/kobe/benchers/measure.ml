@@ -21,7 +21,7 @@ type measure = {
   memory: int64 option;
   stats: Transformer.global_statistics;
   optimum: Bound_rat.t option;
-  satisfiability: Kleene.t;
+  satisfiability: Kleene.t option;
 }
 
 let init stats problem_path =
@@ -30,7 +30,7 @@ let init stats problem_path =
     memory=None;
     stats=stats;
     optimum=None;
-    satisfiability=Kleene.Unknown }
+    satisfiability=None }
 
 let default problem_path =
   init {
@@ -62,20 +62,21 @@ let root_unsat problem_path =
     memory=None;
     stats=stats;
     optimum=None;
-    satisfiability=Kleene.False }
+    satisfiability=Some False }
 
 let update_time bench stats measure =
   let time_out = System.timeout_of_bench bench in
   let open Transformer in
-  if Mtime.Span.compare time_out stats.elapsed <= 0 then measure
+  if Mtime.Span.compare time_out stats.elapsed <= 0 ||
+     measure.satisfiability = Some Unknown then measure
   else { measure with time=(Some (Mtime.Span.to_uint64_ns stats.elapsed)) }
 
 let guess_missing_measures m =
   match m.optimum, m.satisfiability, m.time, m.stats.sols with
-  | Some _, _, _, _ -> { m with satisfiability=True }
-  | _, _, _, x when x > 0 -> { m with satisfiability=True }
-  | None, Unknown, Some _, (-1)
-  | None, False, Some _, (-1)
-  | None, _, Some _, 0 ->
-      { m with satisfiability=False; stats={m.stats with sols=0 } }
+  | Some _, _, _, _ -> { m with satisfiability=Some True }
+  | _, _, _, x when x > 0 -> { m with satisfiability=Some True }
+  | None, None, Some _, (-1)
+  | None, Some False, Some _, (-1)
+  | None, None, Some _, 0 ->
+      { m with satisfiability=Some False; stats={m.stats with sols=0 } }
   | _ -> m

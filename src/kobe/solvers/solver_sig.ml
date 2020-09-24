@@ -37,4 +37,5 @@ let make_solver name : (module S) =
   | "chuffed" -> (module Fzn_chuffed)
   | "gecode" -> (module Fzn_gecode)
   | "minisat" -> (module Minisat)
+  | "kissat" -> (module Kissat)
   | _ -> raise (Failure ("The solver `" ^ name ^ "` is not supported."))

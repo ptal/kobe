@@ -10,7 +10,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-(** This module implements `Solver_sig` for the Minisat constraint solver. *)
+(** This module implements `Solver_sig` for the Minisat SAT solver. *)
 
 open Core.Tools
 open Kobecore
@@ -29,7 +29,11 @@ let is_interesting line =
   minisat_to_kobe_stats |> List.map fst |> List.exists (start_with line)
 
 let parse_last_line lines =
-  let last_line = List.nth lines ((List.length lines) - 1) in
+  let last_line =
+      (* If the timeout is too tight, Minisat might exit even before the parsing has succeeded, thus there is no status message. *)
+      if List.length lines > 0 then
+         List.nth lines ((List.length lines) - 1)
+      else "INDETERMINATE" in
   let (satisfiability, solutions) =
     if last_line = "INDETERMINATE" then "unknown", "0"
     else if last_line = "SATISFIABLE" then "sat", "1"

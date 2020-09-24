@@ -27,7 +27,7 @@ type measure = {
 
   stats: Transformer.global_statistics;
   optimum: Bound_rat.t option;
-  satisfiability: Kleene.t;
+  satisfiability: Kleene.t option;
 }
 
 (** [init stats problem_path] initializes a measure with the given statistics and problem path. *)

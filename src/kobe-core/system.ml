@@ -14,7 +14,7 @@ open Printf
 open Bench_instance_t
 
 let json_ext = ".json"
-let usage = "Usage: absolute_bench <configuration file>\n"
+let usage = "Usage: kobe_gen <configuration file>\n"
 
 let output_file = "out.txt"
 let error_file = "err.txt"

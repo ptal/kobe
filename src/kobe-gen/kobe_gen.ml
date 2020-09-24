@@ -37,7 +37,7 @@ let is_fzn_solver = function
   | _ -> false
 
 let is_standalone_solver = function
-  | "minisat" -> true
+  | "minisat" | "kissat" -> true
   | _ -> false
 
 let map_solvers f filter (solvers: solver list) =

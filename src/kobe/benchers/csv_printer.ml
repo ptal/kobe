@@ -93,9 +93,9 @@ let csv_field_value measure = function
       | None, None -> "none" end
   | `Satisfiability -> begin
       match measure.satisfiability with
-      | True -> "sat"
-      | False -> "unsat"
-      | Unknown -> "unknown" end
+      | Some True -> "sat"
+      | Some False -> "unsat"
+      | _ -> "unknown" end
   | `Restarts -> (string_of_int measure.stats.restarts)
   | `DepthMax -> (string_of_int measure.stats.depth_max)
 
