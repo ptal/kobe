@@ -1,4 +1,4 @@
-(* Copyright 2019 Pierre Talbot
+(* Copyright 2021 Pierre Talbot
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -10,17 +10,11 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-(** Execute a solver according to `Solver`.
-    After conversion of the solver's output to `Measure`, we print it as a CSV on the standard output. *)
-
-open Solvers
 open Kobecore.Bench_instance_j
-open Kobecore.Bench_desc_j
 
-module type S =
-sig
-  (** The last two strings are the problem_path and input_file *)
-  val run: bench_instance -> solver_config -> solver_option option -> string -> string -> unit
-end
+val skm_file: string
 
-module Make(Solver: Solver_sig.S): S
+(** Benchmark a set of problems with a SKM-based solver.
+    It prints the benchmark result in a CSV format on the standard output.
+    Temporary files (.skm) are created in "/tmp" with fresh name (e.g. `/tmp/tmp12.skm`).  *)
+val bench_skm: bench_instance -> skm_solver -> unit

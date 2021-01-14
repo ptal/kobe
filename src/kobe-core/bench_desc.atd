@@ -90,6 +90,7 @@ type pipeline = [
   | MakeModel of make_model
   | ModelToFzn of model_to_fzn
   | ModelToAbsolute of model_to_absolute
+  | ModelToSkm
   | MznToFzn of mzn_to_fzn
   | Solve of (solver list)
 ]

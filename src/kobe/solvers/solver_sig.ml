@@ -38,4 +38,5 @@ let make_solver name : (module S) =
   | "gecode" -> (module Fzn_gecode)
   | "minisat" -> (module Minisat)
   | "kissat" -> (module Kissat)
+  | "turbo" -> (module Turbo)
   | _ -> raise (Failure ("The solver `" ^ name ^ "` is not supported."))

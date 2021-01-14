@@ -1,4 +1,4 @@
-(* Copyright 2019 Pierre Talbot
+(* Copyright 2021 Pierre Talbot
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -10,17 +10,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-(** Execute a solver according to `Solver`.
-    After conversion of the solver's output to `Measure`, we print it as a CSV on the standard output. *)
+(** This module implements `Solver_sig` for the Gecode constraint solver. *)
 
-open Solvers
-open Kobecore.Bench_instance_j
-open Kobecore.Bench_desc_j
-
-module type S =
-sig
-  (** The last two strings are the problem_path and input_file *)
-  val run: bench_instance -> solver_config -> solver_option option -> string -> string -> unit
-end
-
-module Make(Solver: Solver_sig.S): S
+let has_time_option = false
+let parse_output = Minizinc_generic.parse_output
+let make_command exec _ option input_file = exec ^ option ^ input_file

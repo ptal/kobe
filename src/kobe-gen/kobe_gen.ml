@@ -40,6 +40,10 @@ let is_standalone_solver = function
   | "minisat" | "kissat" -> true
   | _ -> false
 
+let is_skm_solver = function
+  | "turbo" -> true
+  | _ -> false
+
 let map_solvers f filter (solvers: solver list) =
      solvers
   |> List.filter (fun (s: solver) -> filter s.name)
@@ -48,6 +52,7 @@ let map_solvers f filter (solvers: solver list) =
 
 let map_fzn_solvers f (solvers: solver list) = map_solvers f is_fzn_solver solvers
 let map_standalone_solvers f (solvers: solver list) = map_solvers f is_standalone_solver solvers
+let map_skm_solvers f (solvers: solver list) = map_solvers f is_skm_solver solvers
 
 let map_solver_option f options =
   if List.length options = 0 then [f None]
@@ -63,6 +68,25 @@ let check_pipeline_sink state_name (instances: solver_instance list) =
     Please consult the manual for more information.")
   else
     instances
+
+let skm_solver_sink benchmark (model: make_model) (solvers: solver list) =
+  map_skm_solvers (fun (solver: solver) ->
+    let solver_config = find_solver benchmark solver.name in
+    map_solver_option (fun option ->
+      `SkmSolver {
+        solver = solver_config;
+        option;
+        decompositions=model.decompositions; }
+    ) solver.options
+  ) solvers
+
+let model_to_skm_state benchmark (model: make_model) (pipelines: pipeline list) =
+  let rec aux : pipeline list -> solver_instance list = function
+    | (`Solve s)::l ->
+        (skm_solver_sink benchmark model s)@(aux l)
+    | _::l -> aux l
+    | [] -> [] in
+  check_pipeline_sink "ModelToSkm" (aux pipelines)
 
 let model_to_absolute_sink benchmark (model: make_model) abs =
   let absolute_solver = find_solver benchmark "absolute" in
@@ -109,6 +133,8 @@ let make_model_state benchmark (model: make_model) (pipelines: pipeline list) =
         (model_to_fzn_state benchmark model fzn l)@(aux l)
     | (`ModelToAbsolute abs)::l ->
         (model_to_absolute_sink benchmark model abs)@(aux l)
+    | (`ModelToSkm)::l ->
+        (model_to_skm_state benchmark model l)@(aux l)
     | _::l -> aux l
     | [] -> [] in
   check_pipeline_sink "MakeModel" (aux pipelines)
@@ -212,6 +238,7 @@ let create_solver_dir bench =
   | `FznSolver fzn -> solver_uid fzn.fzn.solver
   | `MznSolver mzn -> solver_uid mzn.fzn.solver
   | `StandaloneSolver standalone -> solver_uid standalone.solver
+  | `SkmSolver skm -> solver_uid skm.solver
 
 let create_result_filename bench =
   match bench.solver_instance with
@@ -222,6 +249,7 @@ let create_result_filename bench =
         (Filename.remove_extension (Filename.basename mzn.model)) ^ "-" ^ mzn.fzn.strategy.short
         ^ (option_name mzn.fzn.option)
     | `StandaloneSolver standalone -> "standalone" ^ (option_name standalone.option)
+    | `SkmSolver skm -> "box" ^ (decompositions_name skm.decompositions) ^ (option_name skm.option)
 
 let copy_dir benchmark bench dir =
   let path = System.concat_dir bench.problem_set_path dir in

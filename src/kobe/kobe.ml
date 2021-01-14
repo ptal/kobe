@@ -16,6 +16,7 @@ open Kobecore.System
 let run_bench bench =
   match bench.solver_instance with
   | `AbsoluteSolver(solver) -> Benchers.Absolute.bench_absolute bench solver
+  | `SkmSolver(solver) -> Benchers.Skm.bench_skm bench solver
   | `MznSolver(solver) -> Benchers.Mzn.bench_mzn bench solver
   | `FznSolver(solver) -> Benchers.Fzn.bench_fzn bench solver
   | `StandaloneSolver(solver) -> Benchers.Standalone.bench_standalone bench solver
@@ -33,7 +34,7 @@ let bench_from_json json_data =
         [help] You can find a full example of the JSON format in benchmark/data/benchmarks.json." msg)
 
 let () =
-  Printexc.record_backtrace true;
+  (* Printexc.record_backtrace true; *)
   let bench = bench_from_json (get_bench_desc ()) in
   run_bench bench
   (* Printf.printf "%s" (Yojson.Safe.prettify (string_of_bench_instance bench)) *)
