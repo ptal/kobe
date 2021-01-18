@@ -17,10 +17,12 @@ open Bench_instance_j
 val find_solver: benchmark -> string -> solver_config
 val is_fzn_solver: string -> bool
 val is_standalone_solver: string -> bool
+val is_xcsp3_solver: string -> bool
 
 val map_solvers: (solver -> 'a list) -> (string -> bool) -> solver list -> 'a list
 val map_fzn_solvers: (solver -> 'a list) -> solver list -> 'a list
 val map_standalone_solvers: (solver -> 'a list) -> solver list -> 'a list
+val map_xcsp3_solvers: (solver -> 'a list) -> solver list -> 'a list
 val map_solver_option: (solver_option option -> 'a) -> solver_option list -> 'a list
 
 val retrieve_solvers: benchmark -> string list -> solver_config list
@@ -28,12 +30,14 @@ val check_pipeline_sink: string -> solver_instance list -> solver_instance list
 
 val model_to_absolute_sink: benchmark -> make_model -> model_to_absolute -> solver_instance list
 val fzn_solver_sink: benchmark -> make_model -> model_to_fzn -> solver list -> solver_instance list
+val xcsp3_solver_sink: benchmark -> make_model -> solver list -> solver_instance list
 val mzn2fzn_solve_sink: benchmark -> mzn_to_fzn -> solver list -> solver_instance list
 val solve_sink: benchmark -> solver list -> solver_instance list
 
 val model_to_fzn_state: benchmark -> make_model -> model_to_fzn -> pipeline list -> solver_instance list
 val make_model_state: benchmark -> make_model -> pipeline list -> solver_instance list
 val mzn_to_fzn_state: benchmark -> mzn_to_fzn -> pipeline list -> solver_instance list
+val model_to_xcsp3_state: benchmark -> make_model -> pipeline list -> solver_instance list
 
 val initial_state: benchmark -> pipeline list -> solver_instance list
 val error_no_pipeline: unit -> unit

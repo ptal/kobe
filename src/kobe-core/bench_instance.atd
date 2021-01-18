@@ -33,7 +33,7 @@ type standalone_solver = {
   option: solver_option option;
 }
 
-type skm_solver = {
+type xcsp3_solver = {
   solver: solver_config;
   option: solver_option option;
   decompositions: decomposition list;
@@ -44,7 +44,7 @@ type solver_instance = [
   | MznSolver of mzn_solver
   | AbsoluteSolver of absolute_solver
   | StandaloneSolver of standalone_solver
-  | SkmSolver of skm_solver
+  | XCSP3Solver of xcsp3_solver
 ]
 
 type bench_instance = {

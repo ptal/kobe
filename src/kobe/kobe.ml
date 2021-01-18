@@ -16,7 +16,7 @@ open Kobecore.System
 let run_bench bench =
   match bench.solver_instance with
   | `AbsoluteSolver(solver) -> Benchers.Absolute.bench_absolute bench solver
-  | `SkmSolver(solver) -> Benchers.Skm.bench_skm bench solver
+  | `XCSP3Solver(solver) -> Benchers.Xcsp3.bench_xcsp3 bench solver
   | `MznSolver(solver) -> Benchers.Mzn.bench_mzn bench solver
   | `FznSolver(solver) -> Benchers.Fzn.bench_fzn bench solver
   | `StandaloneSolver(solver) -> Benchers.Standalone.bench_standalone bench solver

@@ -10,11 +10,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Kobecore.Bench_instance_j
+open Lang.Ast
 
-val skm_file: string
-
-(** Benchmark a set of problems with a SKM-based solver.
-    It prints the benchmark result in a CSV format on the standard output.
-    Temporary files (.skm) are created in "/tmp" with fresh name (e.g. `/tmp/tmp12.skm`).  *)
-val bench_skm: bench_instance -> skm_solver -> unit
+(** Generate a XCSP3 model from a logic formula. *)
+val xcsp3_of_bab_qformula: bab_qformula -> string
+val xcsp3_of_qformula: qformula -> string
