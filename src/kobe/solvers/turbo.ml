@@ -10,8 +10,29 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-(** This module implements `Solver_sig` for the Gecode constraint solver. *)
+(** This module implements `Solver_sig` for the Turbo constraint solver. *)
+
+open Core
 
 let has_time_option = false
-let parse_output = Minizinc_generic.parse_output
-let make_command exec _ option input_file = exec ^ option ^ input_file
+
+let turbo_to_kobe_stats = [
+  ("solutions", `Solutions);
+  ("fails", `Fails);
+  ("nodes", `Nodes);
+  ("objective", `Optimum);
+  ("peakDepth", `DepthMax)]
+
+let is_interesting line =
+  turbo_to_kobe_stats |> List.map fst |> List.exists (Tools.start_with line)
+
+let extract_key_value_turbo key_value =
+  List.nth key_value 0, List.nth key_value 1
+
+let parse_output lines =
+  let lines = List.filter (fun s -> String.length s > 0) lines in
+  let entries = Generic.parse_output lines is_interesting '='
+    turbo_to_kobe_stats extract_key_value_turbo in
+  entries
+
+let make_command exec _ option input_file = exec ^ " " ^ option ^ " " ^ input_file
