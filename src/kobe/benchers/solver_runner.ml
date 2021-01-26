@@ -87,6 +87,10 @@ struct
     let measure = fill_measure bench problem_path entries in
     guess_missing_measures measure
 
+  let has_no_error err_file =
+    let data = file_to_string err_file in
+    (String.length (String.trim data)) == 0
+
   let wrap_timeout (bench:bench_instance) command =
     if Solver.has_time_option then command
     else "timeout " ^ (string_of_int bench.timeout) ^ "s " ^ command
@@ -122,7 +126,11 @@ struct
     let command = command ^ " > " ^ output_file ^ " 2> " ^ error_file in
     (* let _ = Printf.printf "%s\n" command; flush_all () in *)
     let _ = call_command command in
-    let measure = create_measure bench problem_path output_file in
-    let _ = clean_decompressed_file is_decompressed input_file in
-    Csv_printer.print_as_csv bench measure
+    if has_no_error error_file then
+      let measure = create_measure bench problem_path output_file in
+      let _ = clean_decompressed_file is_decompressed input_file in
+      Csv_printer.print_as_csv bench measure
+    else
+      Csv_printer.print_error_csv problem_path error_file
+
 end

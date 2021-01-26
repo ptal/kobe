@@ -19,3 +19,4 @@ open Measure
 val print_csv_header: bench_instance -> unit
 val print_as_csv: bench_instance -> measure -> unit
 val print_exception: string -> string -> unit
+val print_error_csv: string -> string -> unit

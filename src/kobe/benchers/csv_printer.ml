@@ -106,3 +106,6 @@ let bench_to_csv bench measure =
 let print_as_csv bench measure = print_csv_line (bench_to_csv bench measure)
 
 let print_exception problem_path msg = print_csv_line (Format.sprintf "%s: %s" problem_path msg)
+
+let print_error_csv problem_path err_file =
+  print_csv_line (Format.sprintf "%s, failure (see file `%s`)" (Filename.basename problem_path) err_file)

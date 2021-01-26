@@ -21,7 +21,8 @@ let turbo_to_kobe_stats = [
   ("fails", `Fails);
   ("nodes", `Nodes);
   ("objective", `Optimum);
-  ("peakDepth", `DepthMax)]
+  ("peakDepth", `DepthMax);
+  ("solveTime", `Time `MSec)]
 
 let is_interesting line =
   turbo_to_kobe_stats |> List.map fst |> List.exists (Tools.start_with line)
