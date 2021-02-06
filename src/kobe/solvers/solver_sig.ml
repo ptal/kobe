@@ -39,4 +39,5 @@ let make_solver name : (module S) =
   | "minisat" -> (module Minisat)
   | "kissat" -> (module Kissat)
   | "turbo" -> (module Turbo)
+  | "turbo_seq" -> (module Turbo)
   | _ -> raise (Failure ("The solver `" ^ name ^ "` is not supported."))
