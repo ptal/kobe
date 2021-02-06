@@ -14,7 +14,7 @@
 
 open Core
 
-let has_time_option = false
+let has_time_option = true
 
 let turbo_to_kobe_stats = [
   ("solutions", `Solutions);
@@ -30,10 +30,16 @@ let is_interesting line =
 let extract_key_value_turbo key_value =
   List.nth key_value 0, List.nth key_value 1
 
+let rec map_timeout = function
+  | [] -> []
+  | (`Time _, "timeout")::l -> (`Satisfiability, "unknown")::l
+  | x::l -> x::(map_timeout l)
+
 let parse_output lines =
   let lines = List.filter (fun s -> String.length s > 0) lines in
   let entries = Generic.parse_output lines is_interesting '='
     turbo_to_kobe_stats extract_key_value_turbo in
-  entries
+  map_timeout entries
 
-let make_command exec _ option input_file = exec ^ " " ^ option ^ " " ^ input_file
+let make_command exec timeout option input_file =
+  exec ^ " " ^ (string_of_int timeout) ^ " " ^ option ^ " " ^ input_file
