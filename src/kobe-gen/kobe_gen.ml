@@ -41,7 +41,7 @@ let is_standalone_solver = function
   | _ -> false
 
 let is_xcsp3_solver = function
-  | "turbo" -> true
+  | "turbo" | "turbo_seq" -> true
   | _ -> false
 
 let map_solvers f filter (solvers: solver list) =
