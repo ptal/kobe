@@ -27,8 +27,8 @@ module Make(Solver: Solver_sig.S) =
 struct
   let ios = int_of_string
   let kleene_of_string = function
-  | "sat" -> Kleene.True
-  | "unsat" -> Kleene.False
+  | "sat" | "true" -> Kleene.True
+  | "unsat" | "false" -> Kleene.False
   | "unknown" -> Kleene.Unknown
   | s -> failwith ("kleene_of_string called with `" ^ s ^ "`")
 
