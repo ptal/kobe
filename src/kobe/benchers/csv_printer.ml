@@ -57,11 +57,11 @@ let print_csv_header _bench output_statistics = print_csv_line (csv_header outpu
 let csv_time_field bench measure u =
   let aux time =
     let time = Mtime.Span.of_uint64_ns time in
-      let time = match u with
-        | `NSec -> Mtime.Span.to_ns time
-        | `MSec -> Mtime.Span.to_ms time
-        | `Sec -> Mtime.Span.to_s time in
-      Printf.sprintf "%.2f%s" time (string_of_time_unit u) in
+    let time = match u with
+      | `NSec -> Mtime.Span.to_ns time
+      | `MSec -> Mtime.Span.to_ms time
+      | `Sec -> Mtime.Span.to_s time in
+    Printf.sprintf "%.2f%s" time (string_of_time_unit `Sec) in
   match measure.time with
   | None -> aux (Int64.mul (Int64.of_int 1000000) (Int64.of_int bench.timeout))
   | Some(time) -> aux time
@@ -79,13 +79,13 @@ let csv_memory_field measure u =
       | `KB -> format bytes 1000L
       | `MB -> format bytes (Int64.mul 1000L 1000L)
       | `GB -> format bytes (Int64.mul (Int64.mul 1000L 1000L) 1000L) in
-    Printf.sprintf "%s%s" mem (string_of_memory_unit u)
+    Printf.sprintf "%s%s" mem (string_of_memory_unit `MB)
 
 let csv_field_value bench measure = function
   | `ProblemPath -> measure.problem_path
   | `ProblemName -> Filename.basename measure.problem_path
   | `Time(u) -> csv_time_field bench measure u
-  | `Memory(u) -> csv_memory_field measure u
+  | `Memory(_) -> csv_memory_field measure `MB
   | `Solutions -> (string_of_int measure.stats.sols)
   | `Fails -> (string_of_int measure.stats.fails)
   | `Nodes -> (string_of_int measure.stats.nodes)

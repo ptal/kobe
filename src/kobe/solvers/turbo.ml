@@ -25,7 +25,7 @@ let turbo_to_kobe_stats = [
   ("constraints", `Constraints);
   ("satisfiability", `Satisfiability);
   ("exhaustivity", `Exhaustivity);
-  ("solveTime", `Time `Sec);
+  ("solveTime", `Time `MSec);
   ("objective", `Optimum); ]
 
 let supported_statistics = List.map snd turbo_to_kobe_stats
