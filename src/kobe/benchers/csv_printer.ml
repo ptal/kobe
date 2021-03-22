@@ -84,7 +84,7 @@ let csv_memory_field measure u =
 let csv_field_value bench measure = function
   | `ProblemPath -> measure.problem_path
   | `ProblemName -> Filename.basename measure.problem_path
-  | `Time(u) -> csv_time_field bench measure u
+  | `Time(_) -> csv_time_field bench measure `Sec
   | `Memory(_) -> csv_memory_field measure `MB
   | `Solutions -> (string_of_int measure.stats.sols)
   | `Fails -> (string_of_int measure.stats.fails)
