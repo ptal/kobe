@@ -13,5 +13,6 @@
 (** This module implements `Solver_sig` for the Gecode constraint solver. *)
 
 let has_time_option = Minizinc_generic.has_time_option
+let supported_statistics = Minizinc_generic.supported_statistics
 let parse_output = Minizinc_generic.parse_output
 let make_command exec timeout = Minizinc_generic.make_command (exec ^ " -s") (timeout*1000)

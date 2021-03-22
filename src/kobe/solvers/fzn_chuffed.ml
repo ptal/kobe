@@ -13,6 +13,7 @@
 (** This module implements `Solver_sig` for the Chuffed constraint solver. *)
 
 let has_time_option = Minizinc_generic.has_time_option
+let supported_statistics = Minizinc_generic.supported_statistics
 
 let top_level_error lines =
   List.exists (fun l -> (String.trim l) = "% Top level failure!") lines

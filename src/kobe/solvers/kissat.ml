@@ -19,10 +19,13 @@ let has_time_option = false
 
 (* List of `(kissat-kw,kobe-kw)` keywords where `kissat-kw` is the beginning the output line where we can find the value `kobe-kw`. *)
 let kissat_to_kobe_stats = [
-  ("c restarts", `Restarts);
-  ("c conflicts", `Fails);
   ("c propagations", `Nodes);
+  ("c conflicts", `Fails);
+  ("c restarts", `Restarts);
   ("c maximum-resident-set-size", `Memory `Bytes)];;
+
+let supported_statistics =
+  [`Nodes; `Fails; `Solutions; `Restarts; `Memory `MB; `Time `Sec; `Satisfiability]
 
 let is_interesting line =
   kissat_to_kobe_stats |> List.map fst |> List.exists (start_with line)

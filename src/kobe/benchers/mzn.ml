@@ -59,7 +59,8 @@ let bench_instance bench fzn_kind_solver make_mzn_file make_dzn_file problem_pat
         Runner.run bench fzn_kind_solver.solver fzn_kind_solver.option problem_path fzn_file
 
 let bench_mzn' bench fzn_kind_solver make_mzn_file make_dzn_file =
-  Csv_printer.print_csv_header bench;
+  let (module Solver: Solver_sig.S) = Solver_sig.make_solver fzn_kind_solver.solver.name in
+  Csv_printer.print_csv_header bench Solver.supported_statistics;
   let problems = list_of_problems bench in
   List.iter
     (bench_instance bench fzn_kind_solver make_mzn_file make_dzn_file)

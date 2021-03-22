@@ -22,6 +22,9 @@ type measure = {
   stats: Transformer.global_statistics;
   optimum: Bound_rat.t option;
   satisfiability: Kleene.t option;
+  exhaustivity: bool;
+  variables: int;
+  constraints: int;
 }
 
 let init stats problem_path =
@@ -30,7 +33,10 @@ let init stats problem_path =
     memory=None;
     stats=stats;
     optimum=None;
-    satisfiability=None }
+    satisfiability=None;
+    exhaustivity=false;
+    variables = -1;
+    constraints = -1; }
 
 let default problem_path =
   init {
@@ -62,7 +68,10 @@ let root_unsat problem_path =
     memory=None;
     stats=stats;
     optimum=None;
-    satisfiability=Some False }
+    satisfiability=Some False;
+    exhaustivity=true;
+    variables = -1;
+    constraints = -1; }
 
 let update_time bench stats measure =
   let time_out = System.timeout_of_bench bench in

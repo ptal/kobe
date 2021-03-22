@@ -25,7 +25,10 @@ let minizinc_to_kobe_stats = [
   ("peakMem", `Memory `MB);
   ("solveTime", `Time `Sec);
   ("objective", `Optimum);
-  ("peakDepth", `DepthMax)];;
+  ("peakDepth", `DepthMax)]
+
+let supported_statistics =
+  [`Nodes; `Fails; `Solutions; `Restarts; `DepthMax; `Satisfiability; `Memory `MB; `Time `Sec; `Optimum]
 
 (* Clean the entry assuming unsatisfiability. *)
 let clean_entry (name, value) =

@@ -29,6 +29,8 @@ open Kobecore.System
 open Kobecore.Bench_instance_j
 open Measure
 
+let supported_statistics = [`Solutions; `Fails; `Nodes; `Time `Sec; `Satisfiability; `Optimum; `DepthMax]
+
 module type Bencher_sig =
 sig
   val bench: bench_instance -> absolute_solver -> unit
@@ -585,10 +587,10 @@ struct
       |> update_time bench gs.stats
       |> update_result gs bf.optimise
       |> Measure.guess_missing_measures
-      |> Csv_printer.print_as_csv bench
+      |> (fun path -> Csv_printer.print_as_csv bench path supported_statistics)
     with
     | Bot.Bot_found ->
-        Csv_printer.print_as_csv bench (Measure.root_unsat problem_path)
+        Csv_printer.print_as_csv bench (Measure.root_unsat problem_path) supported_statistics
     | Lang.Ast.Wrong_modelling msg ->
         Csv_printer.print_exception problem_path ("\n" ^ msg)
     | e -> begin
@@ -605,7 +607,7 @@ struct
         bench_instance bench bf problem_path
 
   let bench bench solver =
-    Csv_printer.print_csv_header bench;
+    Csv_printer.print_csv_header bench supported_statistics;
     let problems = list_of_problems bench in
     List.iter (bench_problem_instance bench solver) problems
 end

@@ -37,7 +37,8 @@ let bench_instance bench (xcsp3_kind_solver: xcsp3_solver) problem_path =
         Runner.run bench xcsp3_kind_solver.solver xcsp3_kind_solver.option problem_path xcsp3_file
 
 let bench_xcsp3 bench (solver: xcsp3_solver) =
-  Csv_printer.print_csv_header bench;
+  let (module Solver: Solver_sig.S) = Solver_sig.make_solver solver.solver.name in
+  Csv_printer.print_csv_header bench Solver.supported_statistics;
   let problems = list_of_problems bench in
   List.iter
     (bench_instance bench solver)

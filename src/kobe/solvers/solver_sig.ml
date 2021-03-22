@@ -19,6 +19,9 @@ sig
        In this case, we wrap the call to the solver in a `timeout` command. *)
   val has_time_option: bool
 
+  (** The statistics output by the solver. *)
+  val supported_statistics: csv_field list
+
   (** [make_command exec timeout option input_file].
       Create the command line, as a string, for calling the solver.
       The command should output its result on the standard output. *)

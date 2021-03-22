@@ -17,12 +17,18 @@ open Core
 let has_time_option = true
 
 let turbo_to_kobe_stats = [
-  ("solutions", `Solutions);
-  ("fails", `Fails);
   ("nodes", `Nodes);
-  ("objective", `Optimum);
-  ("peakDepth", `DepthMax);
-  ("solveTime", `Time `MSec)]
+  ("fails", `Fails);
+  ("solutions", `Solutions);
+  ("depthMax", `DepthMax);
+  ("variables", `Variables);
+  ("constraints", `Constraints);
+  ("satisfiability", `Satisfiability);
+  ("exhaustivity", `Exhaustivity);
+  ("solveTime", `Time `MSec);
+  ("objective", `Optimum); ]
+
+let supported_statistics = List.map snd turbo_to_kobe_stats
 
 let is_interesting line =
   turbo_to_kobe_stats |> List.map fst |> List.exists (Tools.start_with line)
@@ -30,16 +36,11 @@ let is_interesting line =
 let extract_key_value_turbo key_value =
   List.nth key_value 0, List.nth key_value 1
 
-let rec map_timeout = function
-  | [] -> []
-  | (`Time _, "timeout")::l -> (`Satisfiability, "unknown")::l
-  | x::l -> x::(map_timeout l)
-
 let parse_output lines =
   let lines = List.filter (fun s -> String.length s > 0) lines in
   let entries = Generic.parse_output lines is_interesting '='
     turbo_to_kobe_stats extract_key_value_turbo in
-  map_timeout entries
+  entries
 
-let make_command exec timeout option input_file =
-  exec ^ " " ^ (string_of_int timeout) ^ " " ^ option ^ " " ^ input_file
+let make_command exec timeout options input_file =
+  exec ^ " " ^ (string_of_int timeout) ^ " " ^ options ^ " " ^ input_file

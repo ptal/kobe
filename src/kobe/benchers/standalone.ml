@@ -19,7 +19,8 @@ let bench_instance bench (solver: standalone_solver) problem_path =
   let (module Runner: Solver_runner.S) = (module Solver_runner.Make(Solver)) in
   Runner.run bench solver.solver solver.option problem_path problem_path
 
-let bench_standalone bench solver =
-  Csv_printer.print_csv_header bench;
+let bench_standalone bench (solver: standalone_solver) =
+  let (module Solver: Solver_sig.S) = Solver_sig.make_solver solver.solver.name in
+  Csv_printer.print_csv_header bench Solver.supported_statistics;
   let problems = System.list_of_problems bench in
   List.iter (bench_instance bench solver) problems

@@ -10,7 +10,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details. *)
 
-open Kobecore
 open Kobecore.Bench_instance_t
 open Bounds
 open Measure
@@ -39,29 +38,34 @@ let csv_field_name = function
   | `NodesBeforeLastSol -> "nodes_before_last_sol"
   | `Optimum -> "optimum"
   | `Satisfiability -> "satisfiability"
+  | `Exhaustivity -> "exhaustivity"
   | `Restarts -> "restarts"
   | `DepthMax -> "depthmax"
+  | `Variables -> "variables"
+  | `Constraints -> "constraints"
 
-let csv_header bench =
-  let names = List.map csv_field_name bench.csv.Bench_desc_t.fields in
+let csv_header output_statistics =
+  let names = List.map csv_field_name output_statistics in
   csv_line names
 
 let print_csv_line line =
   Printf.printf "%s\n" line;
   flush_all ()
 
-let print_csv_header bench = print_csv_line (csv_header bench)
+let print_csv_header _bench output_statistics = print_csv_line (csv_header output_statistics)
 
-let csv_time_field measure u =
-  match measure.time with
-  | None -> "timeout"
-  | Some(time) ->
+let csv_time_field bench measure u =
+  let aux time =
     let time = Mtime.Span.of_uint64_ns time in
-    let time = match u with
-      | `NSec -> Mtime.Span.to_ns time
-      | `MSec -> Mtime.Span.to_ms time
-      | `Sec -> Mtime.Span.to_s time in
-    Printf.sprintf "%.2f%s" time (string_of_time_unit u)
+      let time = match u with
+        | `NSec -> Mtime.Span.to_ns time
+        | `MSec -> Mtime.Span.to_ms time
+        | `Sec -> Mtime.Span.to_s time in
+      Printf.sprintf "%.2f%s" time (string_of_time_unit u) in
+  match measure.time with
+  | None -> aux (Int64.mul (Int64.of_int 1000000) (Int64.of_int bench.timeout))
+  | Some(time) -> aux time
+
 
 let csv_memory_field measure u =
   let format bytes n =
@@ -77,10 +81,10 @@ let csv_memory_field measure u =
       | `GB -> format bytes (Int64.mul (Int64.mul 1000L 1000L) 1000L) in
     Printf.sprintf "%s%s" mem (string_of_memory_unit u)
 
-let csv_field_value measure = function
+let csv_field_value bench measure = function
   | `ProblemPath -> measure.problem_path
   | `ProblemName -> Filename.basename measure.problem_path
-  | `Time(u) -> csv_time_field measure u
+  | `Time(u) -> csv_time_field bench measure u
   | `Memory(u) -> csv_memory_field measure u
   | `Solutions -> (string_of_int measure.stats.sols)
   | `Fails -> (string_of_int measure.stats.fails)
@@ -96,14 +100,17 @@ let csv_field_value measure = function
       | Some True -> "sat"
       | Some False -> "unsat"
       | _ -> "unknown" end
+  | `Exhaustivity -> (string_of_bool measure.exhaustivity)
   | `Restarts -> (string_of_int measure.stats.restarts)
   | `DepthMax -> (string_of_int measure.stats.depth_max)
+  | `Variables -> (string_of_int measure.variables)
+  | `Constraints -> (string_of_int measure.constraints)
 
-let bench_to_csv bench measure =
-  let values = List.map (csv_field_value measure) bench.csv.Bench_desc_t.fields in
+let bench_to_csv bench measure output_statistics =
+  let values = List.map (csv_field_value bench measure) (`ProblemName::output_statistics) in
   csv_line values
 
-let print_as_csv bench measure = print_csv_line (bench_to_csv bench measure)
+let print_as_csv bench measure output_statistics = print_csv_line (bench_to_csv bench measure output_statistics)
 
 let print_exception problem_path msg = print_csv_line (Format.sprintf "%s: %s" problem_path msg)
 

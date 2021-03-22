@@ -13,5 +13,6 @@
 (** This module implements `Solver_sig` for the Choco constraint solver. *)
 
 let has_time_option = true
+let supported_statistics = Minizinc_generic.supported_statistics
 let parse_output _ = raise (Failure "Choco is not yet supported.")
 let make_command exec = Minizinc_generic.make_command (exec ^ " -stat")

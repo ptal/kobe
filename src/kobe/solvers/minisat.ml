@@ -25,6 +25,9 @@ let minisat_to_kobe_stats = [
   ("Memory used", `Memory `MB);
   ("CPU time", `Time `Sec)];;
 
+let supported_statistics =
+  [`Nodes; `Fails; `Solutions; `Restarts; `Memory `MB; `Time `Sec; `Satisfiability]
+
 let is_interesting line =
   minisat_to_kobe_stats |> List.map fst |> List.exists (start_with line)
 

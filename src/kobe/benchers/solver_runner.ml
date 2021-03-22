@@ -66,6 +66,9 @@ struct
       | (`Fails, x)::l -> aux2 m {m.stats with fails=(ios x)} l
       | (`Nodes, x)::l -> aux2 m {m.stats with nodes=(ios x)} l
       | (`Satisfiability, x)::l -> aux { m with satisfiability=Some (kleene_of_string x) } l
+      | (`Exhaustivity, x)::l -> aux { m with exhaustivity=(bool_of_string x) } l
+      | (`Variables, x)::l -> aux { m with variables=(int_of_string x) } l
+      | (`Constraints, x)::l -> aux { m with constraints=(int_of_string x) } l
       | (`Restarts, x)::l -> aux2 m {m.stats with restarts=(ios x)} l
       | (`DepthMax, x)::l -> aux2 m {m.stats with depth_max=(ios x)} l
       | (`Time(_), _)::l -> aux m l
@@ -129,7 +132,7 @@ struct
     if has_no_error error_file then
       let measure = create_measure bench problem_path output_file in
       let _ = clean_decompressed_file is_decompressed input_file in
-      Csv_printer.print_as_csv bench measure
+      Csv_printer.print_as_csv bench measure Solver.supported_statistics
     else
       Csv_printer.print_error_csv problem_path error_file
 

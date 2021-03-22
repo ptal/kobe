@@ -13,10 +13,11 @@
 (** Print a benchmarking measure to the CSV format. *)
 
 open Kobecore.Bench_instance_t
+open Kobecore.Bench_desc_t
 open Measure
 
 (** Print the header of the CSV file. It contains the name of the column. *)
-val print_csv_header: bench_instance -> unit
-val print_as_csv: bench_instance -> measure -> unit
+val print_csv_header: bench_instance -> csv_field list -> unit
+val print_as_csv: bench_instance -> measure -> csv_field list -> unit
 val print_exception: string -> string -> unit
 val print_error_csv: string -> string -> unit
