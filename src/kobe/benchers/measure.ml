@@ -13,7 +13,6 @@
 open Core
 open Bounds
 open Fixpoint
-open Kobecore
 
 type measure = {
   problem_path: string;
@@ -73,12 +72,9 @@ let root_unsat problem_path =
     variables = -1;
     constraints = -1; }
 
-let update_time bench stats measure =
-  let time_out = System.timeout_of_bench bench in
+let update_time _bench stats measure =
   let open Transformer in
-  if Mtime.Span.compare time_out stats.elapsed <= 0 ||
-     measure.satisfiability = Some Unknown then measure
-  else { measure with time=(Some (Mtime.Span.to_uint64_ns stats.elapsed)) }
+  { measure with time=(Some (Mtime.Span.to_uint64_ns stats.elapsed)) }
 
 let guess_missing_measures m =
   match m.optimum, m.satisfiability, m.time, m.stats.sols with
